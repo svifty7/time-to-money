@@ -10,6 +10,7 @@
           :min="0"
           :scale="0"
           placeholder='Часы'
+          inputmode="numeric"
         />
       </label>
 
@@ -23,6 +24,7 @@
           :max="59"
           :scale="0"
           placeholder='Минуты'
+          inputmode="numeric"
         />
       </label>
     </div>
@@ -36,8 +38,8 @@
           :mask="Number"
           :min="0"
           :scale="2"
-          :radix="'.'"
           placeholder='Ставка'
+          inputmode="decimal"
         />
       </label>
     </div>
@@ -68,6 +70,7 @@
               :min="0"
               :scale="2"
               placeholder='Размер вычета'
+              inputmode="decimal"
             />
           </label>
         </transition>
@@ -82,6 +85,7 @@
               :min="0"
               :scale="2"
               placeholder='Оклад'
+              inputmode="decimal"
             />
           </label>
         </transition>
