@@ -48,41 +48,49 @@
         <span class="calculate__label_title">Вычитать аванс</span>
       </label>
 
-      <label class="calculate__label checkbox" v-if="input.deductAnAdvance" @change="calculating">
-        <input type="checkbox" class="calculate__checkbox" v-model="input.inPercent">
-        <span class="calculate__label_title">Аванс в процентах</span>
-      </label>
+      <transition name="opacity" mode="out-in">
+        <label class="calculate__label checkbox" v-if="input.deductAnAdvance" @change="calculating">
+          <input type="checkbox" class="calculate__checkbox" v-model="input.inPercent">
+          <span class="calculate__label_title">Аванс в процентах</span>
+        </label>
+      </transition>
     </div>
 
-    <div class="calculate__group" v-if="input.deductAnAdvance">
-      <label class="calculate__label" v-if="input.deductAnAdvance">
-        <span class="calculate__label_title">Размер вычета аванса</span>
-        <imask-input
-          v-model="input.advanceValue"
-          class="calculate__text"
-          :mask="Number"
-          :min="0"
-          :scale="2"
-          placeholder='Размер вычета'
-        />
-      </label>
+    <transition name="opacity" mode="out-in">
+      <div class="calculate__group" v-if="input.deductAnAdvance">
+        <transition name="opacity" mode="out-in">
+          <label class="calculate__label" v-if="input.deductAnAdvance">
+            <span class="calculate__label_title">Размер вычета аванса</span>
+            <imask-input
+              v-model="input.advanceValue"
+              class="calculate__text"
+              :mask="Number"
+              :min="0"
+              :scale="2"
+              placeholder='Размер вычета'
+            />
+          </label>
+        </transition>
 
-      <label class="calculate__label" v-if="input.inPercent">
-        <span class="calculate__label_title">Размер оклада</span>
-        <imask-input
-          v-model="input.salary"
-          class="calculate__text"
-          :mask="Number"
-          :min="0"
-          :scale="2"
-          placeholder='Оклад'
-        />
-      </label>
-    </div>
+        <transition name="opacity" mode="out-in">
+          <label class="calculate__label" v-if="input.inPercent">
+            <span class="calculate__label_title">Размер оклада</span>
+            <imask-input
+              v-model="input.salary"
+              class="calculate__text"
+              :mask="Number"
+              :min="0"
+              :scale="2"
+              placeholder='Оклад'
+            />
+          </label>
+        </transition>
+      </div>
+    </transition>
 
     <div class="calculate__output">
-      <span class="calculate__output_title">Вы получите:</span>
-      <span class="calculate__output_value">{{ ` ${output}` }}</span>
+      <span class="calculate__output_title">Вы заработали:</span>
+      <span class="calculate__output_value">{{ ` ${ output && output >= 0 ? output : 0 }&#8381;` }}</span>
     </div>
   </form>
 </template>
@@ -94,7 +102,7 @@ export default {
   name: 'Calculating',
   data () {
     return {
-      output: null,
+      output: 0,
       input: {
         rate: null,
         hours: null,
@@ -112,7 +120,7 @@ export default {
   methods: {
     calculating () {
       // eslint-disable-next-line
-      const {rate, salary, hours, minutes, advanceValue, deductAnAdvance, inPercent} = this.input
+        const { rate, salary, hours, minutes, advanceValue, deductAnAdvance, inPercent } = this.input
       let time = 0
       let newMinutes
 
@@ -155,12 +163,6 @@ export default {
     padding: 16px;
     user-select: none;
 
-    > * {
-      &:nth-child(n+2) {
-        margin-top: 12px;
-      }
-    }
-
     input {
       border: 1px solid transparentize(#2c3e50, .5);
       border-radius: 4px;
@@ -171,10 +173,19 @@ export default {
 
     &__group {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+
+      @media screen and (min-width: 562px) {
+        flex-direction: row;
+        justify-content: space-between;
+      }
 
       .calculate__label {
-        width: calc(50% - 6px);
+        width: 100%;
+
+        @media screen and (min-width: 562px) {
+          width: calc(50% - 6px);
+        }
       }
     }
 
@@ -184,6 +195,7 @@ export default {
       align-items: flex-start;
       width: 100%;
       cursor: pointer;
+      margin-top: 12px;
 
       &_title {
         color: #2c3e50;
@@ -198,17 +210,34 @@ export default {
         .calculate__label_title {
           margin-top: 0;
           text-align: left;
+          padding-left: 4px;
         }
       }
     }
 
     &__text {
       width: 100%;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     &__output {
       text-align: left;
+      margin-top: 12px;
+
+      &_value {
+        font-weight: 700;
+      }
+    }
+  }
+
+  .opacity {
+    &-enter-active, &-leave-active {
+      transition: all .3s ease;
+    }
+
+    &-enter, &-leave-to {
+      transform: translateX(10px);
+      opacity: 0;
     }
   }
 </style>

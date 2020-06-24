@@ -22,12 +22,13 @@ export default {
     display: block;
     width: 100%;
     height: 100%;
+    font: {
+      family: 'Exo 2', sans-serif;
+      weight: 500;
+    };
   }
 
   #app {
-    font: {
-      family: "JetBrains Mono";
-    };
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
