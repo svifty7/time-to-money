@@ -11,6 +11,8 @@
           :scale="0"
           placeholder='Часы'
           inputmode="numeric"
+          autocomplete="off"
+          autofocus="autofocus"
         />
       </label>
 
@@ -25,6 +27,7 @@
           :scale="0"
           placeholder='Минуты'
           inputmode="numeric"
+          autocomplete="off"
         />
       </label>
     </div>
@@ -40,6 +43,7 @@
           :scale="2"
           placeholder='Ставка'
           inputmode="decimal"
+          autocomplete="on"
         />
       </label>
     </div>
@@ -71,6 +75,7 @@
               :scale="2"
               placeholder='Размер вычета'
               inputmode="decimal"
+              autocomplete="on"
             />
           </label>
         </transition>
@@ -86,6 +91,7 @@
               :scale="2"
               placeholder='Оклад'
               inputmode="decimal"
+              autocomplete="off"
             />
           </label>
         </transition>
