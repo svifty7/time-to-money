@@ -64,6 +64,7 @@
             :mask="Number"
             :min="0"
             :scale="2"
+            :radix="'.'"
             placeholder='Ставка'
             inputmode="decimal"
             autocomplete="on"
@@ -96,6 +97,7 @@
                 :mask="Number"
                 :min="0"
                 :scale="2"
+                :radix="'.'"
                 placeholder='Размер вычета'
                 inputmode="decimal"
                 autocomplete="on"
@@ -112,6 +114,7 @@
                 :mask="Number"
                 :min="0"
                 :scale="2"
+                :radix="'.'"
                 placeholder='Оклад'
                 inputmode="decimal"
                 autocomplete="off"
@@ -163,7 +166,7 @@ export default {
         }
 
         if (el.minutes) {
-          time += parseFloat(el.minutes) / 60
+          time += el.minutes / 60
         }
       })
 
@@ -175,15 +178,15 @@ export default {
       // eslint-disable-next-line
       const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
 
-      const yourMoney = this.sumTime * parseFloat(rate)
+      const yourMoney = this.sumTime * rate
 
       if (!deductAnAdvance) {
         this.output = yourMoney
       } else {
         if (advanceValue && inPercent) {
-          this.output = yourMoney - (parseFloat(salary) * parseFloat(advanceValue) / 100)
+          this.output = yourMoney - (salary * advanceValue / 100)
         } else if (advanceValue && !inPercent) {
-          this.output = yourMoney - parseFloat(advanceValue)
+          this.output = yourMoney - advanceValue
         }
       }
 
