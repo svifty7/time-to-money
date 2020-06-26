@@ -53,7 +53,8 @@
       <button type="button"
               class="calculate__btn"
               @click.prevent="addTime"
-      >Добавить время</button>
+      >Добавить время
+      </button>
 
       <div class="calculate__group">
         <label class="calculate__label">
@@ -64,7 +65,6 @@
             :mask="Number"
             :min="0"
             :scale="2"
-            :radix="'.'"
             placeholder='Ставка'
             inputmode="decimal"
             autocomplete="on"
@@ -97,7 +97,6 @@
                 :mask="Number"
                 :min="0"
                 :scale="2"
-                :radix="'.'"
                 placeholder='Размер вычета'
                 inputmode="decimal"
                 autocomplete="on"
@@ -114,7 +113,6 @@
                 :mask="Number"
                 :min="0"
                 :scale="2"
-                :radix="'.'"
                 placeholder='Оклад'
                 inputmode="decimal"
                 autocomplete="off"
@@ -176,17 +174,21 @@ export default {
   methods: {
     calculating () {
       // eslint-disable-next-line
-      const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
+        const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
 
-      const yourMoney = this.sumTime * rate
+      const newRate = rate ? rate.replace(/,/g, '.') : rate
+      const newSalary = salary ? salary.replace(/,/g, '.') : salary
+      const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
+
+      const yourMoney = this.sumTime * newRate
 
       if (!deductAnAdvance) {
         this.output = yourMoney
       } else {
         if (advanceValue && inPercent) {
-          this.output = yourMoney - (salary * advanceValue / 100)
+          this.output = yourMoney - (newSalary * newAdvanceValue / 100)
         } else if (advanceValue && !inPercent) {
-          this.output = yourMoney - advanceValue
+          this.output = yourMoney - newAdvanceValue
         }
       }
 
