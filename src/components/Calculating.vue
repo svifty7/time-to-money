@@ -1,5 +1,6 @@
 <template>
   <div class="calculate">
+    <h1 class="calculate__title">Подсчет заработанных денег</h1>
     <form class="calculate__body"
           @input="calculating"
     >
@@ -228,8 +229,20 @@ export default {
     flex-direction: column;
     align-items: center;
 
+    &__title {
+      text-align: left;
+      padding: 32px 16px 16px;
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0;
+
+      @media screen and (min-width: 562px) {
+        text-align: center;
+      }
+    }
+
     &__body {
-      padding: 32px 16px;
+      padding: 16px 16px 32px;
       max-width: 460px;
       width: 100%;
     }
@@ -261,7 +274,9 @@ export default {
       }
 
       &.padding {
-        padding-right: 28px + 12px;
+        @media screen and (min-width: 562px) {
+          padding-right: 28px + 12px;
+        }
       }
     }
 
