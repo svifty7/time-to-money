@@ -1,10 +1,15 @@
 <template>
   <form class="calculate" @input="calculating">
-    <div class="calculate__group">
+    <div v-for="(time, timeKey) in input.times" :key="timeKey"
+         class="calculate__group"
+         :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
+    >
       <label class="calculate__label">
-        <span class="calculate__label_title">Отработано часов</span>
+        <span v-if="timeKey === 0"
+              class="calculate__label_title"
+        >Отработано часов</span>
         <imask-input
-          v-model="input.hours"
+          v-model="time.hours"
           class="calculate__text"
           :mask="Number"
           :min="0"
@@ -17,9 +22,11 @@
       </label>
 
       <label class="calculate__label">
-        <span class="calculate__label_title">Отработано минут</span>
+        <span v-if="timeKey === 0"
+              class="calculate__label_title"
+        >Отработано минут</span>
         <imask-input
-          v-model="input.minutes"
+          v-model="time.minutes"
           class="calculate__text"
           :mask="Number"
           :min="0"
@@ -30,7 +37,18 @@
           autocomplete="off"
         />
       </label>
+
+      <button v-if="Array.isArray(input.times) && input.times.length > 1"
+              type="button"
+              class="calculate__rm"
+              @click.prevent="removeTime(timeKey)"
+      ></button>
     </div>
+
+    <button type="button"
+            class="calculate__btn"
+            @click.prevent="addTime"
+    >Добавить время</button>
 
     <div class="calculate__group">
       <label class="calculate__label">
@@ -114,12 +132,14 @@ export default {
     return {
       output: 0,
       input: {
+        times: [{
+          hours: null,
+          minutes: null
+        }],
         rate: null,
-        hours: null,
-        minutes: null,
-        advanceValue: null,
+        advanceValue: '9000',
         salary: null,
-        deductAnAdvance: false,
+        deductAnAdvance: true,
         inPercent: false
       }
     }
@@ -127,28 +147,29 @@ export default {
   components: {
     'imask-input': IMaskComponent
   },
+  computed: {
+    sumTime () {
+      let time = 0
+
+      this.input.times.forEach(el => {
+        if (el.hours) {
+          time += parseInt(el.hours)
+        }
+
+        if (el.minutes) {
+          time += parseFloat(el.minutes) / 60
+        }
+      })
+
+      return time
+    }
+  },
   methods: {
     calculating () {
       // eslint-disable-next-line
-        const { rate, salary, hours, minutes, advanceValue, deductAnAdvance, inPercent } = this.input
-      let time = 0
-      let newMinutes
+      const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
 
-      if (minutes) {
-        newMinutes = `${parseInt(minutes) / 60}`
-
-        newMinutes = newMinutes.slice(2, newMinutes.length)
-      }
-
-      if (hours && minutes) {
-        time = parseFloat(`${hours}.${newMinutes}`)
-      } else if (hours) {
-        time = parseInt(hours)
-      } else if (minutes) {
-        time = parseFloat(`0.${newMinutes}`)
-      }
-
-      const yourMoney = time * parseFloat(rate)
+      const yourMoney = this.sumTime * parseFloat(rate)
 
       if (!deductAnAdvance) {
         this.output = yourMoney
@@ -161,12 +182,34 @@ export default {
       }
 
       this.output = parseFloat(this.output.toString()).toFixed(2)
+    },
+    addTime () {
+      this.input.times.push({
+        hours: null,
+        minutes: null
+      })
+    },
+    removeTime (index) {
+      const newTimes = []
+
+      this.input.times.forEach((time, timeIndex) => {
+        if (timeIndex !== index) {
+          newTimes.push(JSON.parse(JSON.stringify(time)))
+        }
+      })
+
+      this.input.times = newTimes
     }
   }
 }
 </script>
 
 <style lang="scss">
+  $black: #2c3e50;
+  $green: #42b983;
+  $white: #ffffff;
+  $red: #DE0F07;
+
   .calculate {
     max-width: 460px;
     width: 100%;
@@ -174,16 +217,17 @@ export default {
     user-select: none;
 
     input {
-      border: 1px solid transparentize(#2c3e50, .5);
+      border: 1px solid transparentize($black, .5);
       border-radius: 4px;
       padding: 4px 8px;
       user-select: initial;
-      color: #2c3e50;
+      color: $black;
     }
 
     &__group {
       display: flex;
       flex-direction: column;
+      position: relative;
 
       @media screen and (min-width: 562px) {
         flex-direction: row;
@@ -208,7 +252,7 @@ export default {
       margin-top: 12px;
 
       &_title {
-        color: #2c3e50;
+        color: $black;
         margin-bottom: 4px;
         font-size: 14px;
         padding-left: 8px;
@@ -236,6 +280,90 @@ export default {
 
       &_value {
         font-weight: 700;
+      }
+    }
+
+    &__btn {
+      display: flex;
+      width: 100%;
+      line-height: 32px;
+      padding: 0 12px;
+      margin-top: 12px;
+      background-color: $black;
+      border: 1px solid $black;
+      border-radius: 4px;
+      color: $white;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      appearance: none;
+      cursor: pointer;
+
+      @media screen and (min-width: 562px) {
+        transition: all ease-in-out .2s;
+
+        &:hover {
+          transition: all ease-in-out .2s;
+          background-color: lighten($black, 5%);
+          border-color: lighten($black, 5%);
+        }
+      }
+    }
+
+    &__rm {
+      display: flex;
+      width: 100%;
+      line-height: 32px;
+      padding: 0 12px;
+      margin-top: 12px;
+      background-color: darken($red, 3%);
+      border: 1px solid darken($red, 3%);
+      border-radius: 4px;
+      color: $white;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      appearance: none;
+      cursor: pointer;
+
+      @media screen and (min-width: 562px) {
+        width: 28px;
+        height: 28px;
+        position: absolute;
+        right: -28px - 12px;
+        bottom: 0;
+        transition: all ease-in-out .2s;
+
+        &:hover {
+          transition: all ease-in-out .2s;
+          background-color: lighten($red, 3%);
+          border-color: lighten($red, 3%);
+        }
+      }
+
+      &:after {
+        content: 'Удалить время';
+
+        @media screen and (min-width: 562px) {
+          transform: rotate(45deg);
+        }
+      }
+
+      &:before {
+        @media screen and (min-width: 562px) {
+          transform: rotate(-45deg);
+        }
+      }
+
+      &:before, &:after {
+        @media screen and (min-width: 562px) {
+          content: '';
+          width: 14px;
+          height: 2px;
+          display: block;
+          background-color: currentColor;
+          position: absolute;
+        }
       }
     }
   }
