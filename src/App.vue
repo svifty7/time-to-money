@@ -34,10 +34,10 @@ export default {
     text-align: center;
     color: #2c3e50;
     display: flex;
-    width: 100%;
-    height: 100%;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    height: 100%;
 
     * {
       box-sizing: border-box;

@@ -1,126 +1,131 @@
 <template>
-  <form class="calculate" @input="calculating">
-    <div v-for="(time, timeKey) in input.times" :key="timeKey"
-         class="calculate__group"
-         :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
+  <div class="calculate">
+    <form class="calculate__body"
+          @input="calculating"
     >
-      <label class="calculate__label">
+      <div v-for="(time, timeKey) in input.times" :key="timeKey"
+           class="calculate__group"
+           :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
+      >
+        <label class="calculate__label">
         <span v-if="timeKey === 0"
               class="calculate__label_title"
         >Отработано часов</span>
-        <imask-input
-          v-model="time.hours"
-          class="calculate__text"
-          :mask="Number"
-          :min="0"
-          :scale="0"
-          placeholder='Часы'
-          inputmode="numeric"
-          autocomplete="off"
-          autofocus="autofocus"
-        />
-      </label>
+          <imask-input
+            v-model="time.hours"
+            class="calculate__text"
+            :mask="Number"
+            :min="0"
+            :scale="0"
+            ref="hour"
+            placeholder='Часы'
+            inputmode="numeric"
+            autocomplete="off"
+            autofocus="autofocus"
+          />
+        </label>
 
-      <label class="calculate__label">
+        <label class="calculate__label">
         <span v-if="timeKey === 0"
               class="calculate__label_title"
         >Отработано минут</span>
-        <imask-input
-          v-model="time.minutes"
-          class="calculate__text"
-          :mask="Number"
-          :min="0"
-          :max="59"
-          :scale="0"
-          placeholder='Минуты'
-          inputmode="numeric"
-          autocomplete="off"
-        />
-      </label>
-
-      <button v-if="Array.isArray(input.times) && input.times.length > 1"
-              type="button"
-              class="calculate__rm"
-              @click.prevent="removeTime(timeKey)"
-      ></button>
-    </div>
-
-    <button type="button"
-            class="calculate__btn"
-            @click.prevent="addTime"
-    >Добавить время</button>
-
-    <div class="calculate__group">
-      <label class="calculate__label">
-        <span class="calculate__label_title">Ставка</span>
-        <imask-input
-          v-model="input.rate"
-          class="calculate__text"
-          :mask="Number"
-          :min="0"
-          :scale="2"
-          placeholder='Ставка'
-          inputmode="decimal"
-          autocomplete="on"
-        />
-      </label>
-    </div>
-
-    <div class="calculate__group">
-      <label class="calculate__label checkbox" @change="calculating">
-        <input type="checkbox" class="calculate__checkbox" v-model="input.deductAnAdvance">
-        <span class="calculate__label_title">Вычитать аванс</span>
-      </label>
-
-      <transition name="opacity" mode="out-in">
-        <label class="calculate__label checkbox" v-if="input.deductAnAdvance" @change="calculating">
-          <input type="checkbox" class="calculate__checkbox" v-model="input.inPercent">
-          <span class="calculate__label_title">Аванс в процентах</span>
+          <imask-input
+            v-model="time.minutes"
+            class="calculate__text"
+            :mask="Number"
+            :min="0"
+            :max="59"
+            :scale="0"
+            placeholder='Минуты'
+            inputmode="numeric"
+            autocomplete="off"
+          />
         </label>
-      </transition>
-    </div>
 
-    <transition name="opacity" mode="out-in">
-      <div class="calculate__group" v-if="input.deductAnAdvance">
-        <transition name="opacity" mode="out-in">
-          <label class="calculate__label" v-if="input.deductAnAdvance">
-            <span class="calculate__label_title">Размер вычета аванса</span>
-            <imask-input
-              v-model="input.advanceValue"
-              class="calculate__text"
-              :mask="Number"
-              :min="0"
-              :scale="2"
-              placeholder='Размер вычета'
-              inputmode="decimal"
-              autocomplete="on"
-            />
-          </label>
-        </transition>
+        <button v-if="Array.isArray(input.times) && input.times.length > 1"
+                type="button"
+                class="calculate__rm"
+                @click.prevent="removeTime(timeKey)"
+        ></button>
+      </div>
+
+      <button type="button"
+              class="calculate__btn"
+              @click.prevent="addTime"
+      >Добавить время</button>
+
+      <div class="calculate__group">
+        <label class="calculate__label">
+          <span class="calculate__label_title">Ставка</span>
+          <imask-input
+            v-model="input.rate"
+            class="calculate__text"
+            :mask="Number"
+            :min="0"
+            :scale="2"
+            placeholder='Ставка'
+            inputmode="decimal"
+            autocomplete="on"
+          />
+        </label>
+      </div>
+
+      <div class="calculate__group">
+        <label class="calculate__label checkbox" @change="calculating">
+          <input type="checkbox" class="calculate__checkbox" v-model="input.deductAnAdvance">
+          <span class="calculate__label_title">Вычитать аванс</span>
+        </label>
 
         <transition name="opacity" mode="out-in">
-          <label class="calculate__label" v-if="input.inPercent">
-            <span class="calculate__label_title">Размер оклада</span>
-            <imask-input
-              v-model="input.salary"
-              class="calculate__text"
-              :mask="Number"
-              :min="0"
-              :scale="2"
-              placeholder='Оклад'
-              inputmode="decimal"
-              autocomplete="off"
-            />
+          <label class="calculate__label checkbox" v-if="input.deductAnAdvance" @change="calculating">
+            <input type="checkbox" class="calculate__checkbox" v-model="input.inPercent">
+            <span class="calculate__label_title">Аванс в процентах</span>
           </label>
         </transition>
       </div>
-    </transition>
 
-    <div class="calculate__output">
-      <span class="calculate__output_title">Вы заработали:</span>
-      <span class="calculate__output_value">{{ ` ${ output && output >= 0 ? output : 0 }&#8381;` }}</span>
-    </div>
-  </form>
+      <transition name="opacity" mode="out-in">
+        <div class="calculate__group" v-if="input.deductAnAdvance">
+          <transition name="opacity" mode="out-in">
+            <label class="calculate__label" v-if="input.deductAnAdvance">
+              <span class="calculate__label_title">Размер вычета аванса</span>
+              <imask-input
+                v-model="input.advanceValue"
+                class="calculate__text"
+                :mask="Number"
+                :min="0"
+                :scale="2"
+                placeholder='Размер вычета'
+                inputmode="decimal"
+                autocomplete="on"
+              />
+            </label>
+          </transition>
+
+          <transition name="opacity" mode="out-in">
+            <label class="calculate__label" v-if="input.inPercent">
+              <span class="calculate__label_title">Размер оклада</span>
+              <imask-input
+                v-model="input.salary"
+                class="calculate__text"
+                :mask="Number"
+                :min="0"
+                :scale="2"
+                placeholder='Оклад'
+                inputmode="decimal"
+                autocomplete="off"
+              />
+            </label>
+          </transition>
+        </div>
+      </transition>
+
+      <div class="calculate__output">
+        <span class="calculate__output_title">Вы заработали:</span>
+        <span class="calculate__output_value">{{ ` ${ output && output >= 0 ? output : 0 }&#8381;` }}</span>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -188,6 +193,10 @@ export default {
         hours: null,
         minutes: null
       })
+
+      this.$nextTick(() => {
+        this.$refs.hour[this.$refs.hour.length - 1].$el.focus()
+      })
     },
     removeTime (index) {
       const newTimes = []
@@ -211,10 +220,19 @@ export default {
   $red: #DE0F07;
 
   .calculate {
-    max-width: 460px;
     width: 100%;
-    padding: 16px;
     user-select: none;
+    overflow: auto;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &__body {
+      padding: 32px 16px;
+      max-width: 460px;
+      width: 100%;
+    }
 
     input {
       border: 1px solid transparentize($black, .5);
@@ -240,6 +258,10 @@ export default {
         @media screen and (min-width: 562px) {
           width: calc(50% - 6px);
         }
+      }
+
+      &.padding {
+        padding-right: 28px + 12px;
       }
     }
 
@@ -330,7 +352,7 @@ export default {
         width: 28px;
         height: 28px;
         position: absolute;
-        right: -28px - 12px;
+        right: 0;
         bottom: 0;
         transition: all ease-in-out .2s;
 
