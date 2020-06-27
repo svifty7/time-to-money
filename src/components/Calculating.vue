@@ -1,9 +1,7 @@
 <template>
   <div class="calculate">
     <h1 class="calculate__title">Подсчет заработанных денег</h1>
-    <form class="calculate__body"
-          @input="calculating"
-    >
+    <div class="calculate__body">
       <div v-for="(time, timeKey) in input.times" :key="timeKey"
            class="calculate__group"
            :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
@@ -11,6 +9,7 @@
         <label class="calculate__label">
         <span v-if="timeKey === 0"
               class="calculate__label_title"
+              :class="{'required': timeKey === 0}"
         >Отработано часов</span>
           <imask-input
             v-model="time.hours"
@@ -58,7 +57,7 @@
 
       <div class="calculate__group">
         <label class="calculate__label">
-          <span class="calculate__label_title">Ставка</span>
+          <span class="calculate__label_title required">Ставка</span>
           <imask-input
             v-model="input.rate"
             class="calculate__text"
@@ -70,16 +69,30 @@
             autocomplete="on"
           />
         </label>
+
+        <label class="calculate__label">
+          <span class="calculate__label_title">Желаемая сумма</span>
+          <imask-input
+            v-model="input.requiredAmount"
+            class="calculate__text"
+            :mask="Number"
+            :min="0"
+            :scale="2"
+            placeholder='Сумма'
+            inputmode="decimal"
+            autocomplete="on"
+          />
+        </label>
       </div>
 
       <div class="calculate__group">
-        <label class="calculate__label checkbox" @change="calculating">
+        <label class="calculate__label checkbox">
           <input type="checkbox" class="calculate__checkbox" v-model="input.deductAnAdvance">
           <span class="calculate__label_title">Вычитать аванс</span>
         </label>
 
         <transition name="opacity" mode="out-in">
-          <label class="calculate__label checkbox" v-if="input.deductAnAdvance" @change="calculating">
+          <label class="calculate__label checkbox" v-if="input.deductAnAdvance">
             <input type="checkbox" class="calculate__checkbox" v-model="input.inPercent">
             <span class="calculate__label_title">Аванс в процентах</span>
           </label>
@@ -124,9 +137,36 @@
 
       <div class="calculate__output">
         <span class="calculate__output_title">Вы заработали:</span>
-        <span class="calculate__output_value">{{ ` ${ output && output >= 0 ? output : 0 }&#8381;` }}</span>
+        <span class="calculate__output_value">
+          {{ ` ${ earned && earned >= 0 ? earned.toLocaleString() : 0 }&#8381;` }}
+        </span>
       </div>
-    </form>
+
+      <transition name="opacity" mode="out-in">
+        <div class="calculate__output" v-if="input.requiredAmount && (timeLeft && moneyLeft > 0)">
+          <span class="calculate__output_title">До желаемой суммы:</span>
+          <span class="calculate__output_value">
+          {{ ` ${ moneyLeft.toLocaleString() }&#8381; (${ timeLeft } при текущей ставке)` }}
+        </span>
+        </div>
+
+        <div class="calculate__output" v-else-if="input.requiredAmount && moneyLeft <= 0">
+          <span class="calculate__output_title">Желаемая сумма достигнута.</span>
+          <span class="calculate__output_value"> Поздравляю! 😇</span>
+        </div>
+      </transition>
+
+      <transition name="opacity" mode="out-in">
+        <div class="calculate__output"
+             v-if="input.requiredAmount && (compensateTimeLeft && compensateMoneyLeft > 0) && input.deductAnAdvance"
+        >
+          <span class="calculate__output_title">Без учета вычтенного аванса:</span>
+          <span class="calculate__output_value">
+          {{ ` ${ compensateMoneyLeft.toLocaleString() }&#8381; (${ compensateTimeLeft } при текущей ставке)` }}
+        </span>
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -137,12 +177,12 @@ export default {
   name: 'Calculating',
   data () {
     return {
-      output: 0,
       input: {
         times: [{
           hours: null,
           minutes: null
         }],
+        requiredAmount: null,
         rate: null,
         advanceValue: '9000',
         salary: null,
@@ -169,10 +209,9 @@ export default {
       })
 
       return time
-    }
-  },
-  methods: {
-    calculating () {
+    },
+
+    earned () {
       // eslint-disable-next-line
         const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
 
@@ -182,18 +221,76 @@ export default {
 
       const yourMoney = this.sumTime * newRate
 
+      let earned = 0
+
       if (!deductAnAdvance) {
-        this.output = yourMoney
+        earned = yourMoney
       } else {
         if (advanceValue && inPercent) {
-          this.output = yourMoney - (newSalary * newAdvanceValue / 100)
+          earned = yourMoney - (newSalary * newAdvanceValue / 100)
         } else if (advanceValue && !inPercent) {
-          this.output = yourMoney - newAdvanceValue
+          earned = yourMoney - newAdvanceValue
         }
       }
 
-      this.output = parseFloat(this.output.toString()).toFixed(2)
+      return parseFloat(earned.toString()).toFixed(2) * 1
     },
+
+    timeLeft () {
+      const { rate, requiredAmount } = this.input
+
+      if (rate && requiredAmount) {
+        const newRate = rate ? rate.replace(/,/g, '.') : rate
+
+        const timeLeft = this.moneyLeft / newRate
+        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0])
+        const calculatedMinutes = parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+        const optimizedMinutes = parseFloat(
+            `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(2, calculatedMinutes.toString().length)}`
+        ).toFixed(0)
+
+        return `${optimizedHours} часов ${optimizedMinutes} минут`
+      }
+
+      return false
+    },
+
+    compensateTimeLeft () {
+      const { rate, requiredAmount } = this.input
+
+      if (rate && requiredAmount) {
+        const newRate = rate ? rate.replace(/,/g, '.') : rate
+
+        const timeLeft = this.compensateMoneyLeft / newRate
+        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0])
+        const calculatedMinutes = parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+        const optimizedMinutes = parseFloat(
+            `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(2, calculatedMinutes.toString().length)}`
+        ).toFixed(0)
+
+        return `${optimizedHours} часов ${optimizedMinutes} минут`
+      }
+
+      return false
+    },
+
+    moneyLeft () {
+      const { requiredAmount } = this.input
+
+      const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
+
+      return (this.earned - newRequiredAmount) * -1
+    },
+
+    compensateMoneyLeft () {
+      const { requiredAmount } = this.input
+
+      const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
+
+      return (this.earned - newRequiredAmount) * -1 - 9000
+    }
+  },
+  methods: {
     addTime () {
       this.input.times.push({
         hours: null,
@@ -298,6 +395,14 @@ export default {
         margin-bottom: 4px;
         font-size: 14px;
         padding-left: 8px;
+
+        &.required {
+          &:after {
+            content: '*';
+            color: $red;
+            margin-left: 2px;
+          }
+        }
       }
 
       &.checkbox {
