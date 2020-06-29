@@ -295,7 +295,6 @@ export default {
 
       const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
 
-      console.log(newRequiredAmount, this.earned)
       return newRequiredAmount - this.earned
     },
 
@@ -305,7 +304,6 @@ export default {
 
       const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
 
-      console.log(newRequiredAmount, this.earned, newAdvanceValue)
       return (newRequiredAmount - this.earned) - newAdvanceValue
     }
   },
