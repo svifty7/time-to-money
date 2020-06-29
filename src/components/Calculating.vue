@@ -243,13 +243,21 @@ export default {
         const newRate = rate ? rate.replace(/,/g, '.') : rate
 
         const timeLeft = this.moneyLeft / newRate
-        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0])
-        const calculatedMinutes = parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
+          ? timeLeft.toString().split('.')[0]
+          : timeLeft.toString())
+        const calculatedMinutes = timeLeft.toString().split('.')[1]
+          ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+          : 0
         const optimizedMinutes = parseFloat(
-            `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(2, calculatedMinutes.toString().length)}`
+          `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(2, calculatedMinutes.toString().length)}`
         ).toFixed(0)
 
-        return `${optimizedHours} часов ${optimizedMinutes} минут`
+        if (optimizedMinutes > 0) {
+          return `${optimizedHours}:${optimizedMinutes}`
+        } else {
+          return `${optimizedHours}:00`
+        }
       }
 
       return false
@@ -262,13 +270,21 @@ export default {
         const newRate = rate ? rate.replace(/,/g, '.') : rate
 
         const timeLeft = this.compensateMoneyLeft / newRate
-        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0])
-        const calculatedMinutes = parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+        const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
+          ? timeLeft.toString().split('.')[0]
+          : timeLeft.toString())
+        const calculatedMinutes = timeLeft.toString().split('.')[1]
+          ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+          : 0
         const optimizedMinutes = parseFloat(
             `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(2, calculatedMinutes.toString().length)}`
         ).toFixed(0)
 
-        return `${optimizedHours} часов ${optimizedMinutes} минут`
+        if (optimizedMinutes > 0) {
+          return `${optimizedHours}:${optimizedMinutes}`
+        } else {
+          return `${optimizedHours}:00`
+        }
       }
 
       return false
@@ -279,15 +295,18 @@ export default {
 
       const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
 
-      return (this.earned - newRequiredAmount) * -1
+      console.log(newRequiredAmount, this.earned)
+      return newRequiredAmount - this.earned
     },
 
     compensateMoneyLeft () {
-      const { requiredAmount } = this.input
+      const { requiredAmount, advanceValue } = this.input
+      const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
 
       const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
 
-      return (this.earned - newRequiredAmount) * -1 - 9000
+      console.log(newRequiredAmount, this.earned, newAdvanceValue)
+      return (newRequiredAmount - this.earned) - newAdvanceValue
     }
   },
   methods: {
