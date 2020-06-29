@@ -1,7 +1,9 @@
 <template>
   <div class="calculate">
     <h1 class="calculate__title">Подсчет заработанных денег</h1>
-    <div class="calculate__body">
+    <form class="calculate__body"
+          @input="updateStorage"
+    >
       <div v-for="(time, timeKey) in input.times" :key="timeKey"
            class="calculate__group"
            :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
@@ -166,7 +168,7 @@
         </span>
         </div>
       </transition>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -307,6 +309,11 @@ export default {
       return (newRequiredAmount - this.earned) - newAdvanceValue
     }
   },
+  mounted () {
+    const json = JSON.parse(localStorage.getItem('earned_by_hours'))
+
+    this.$set(this, 'input', json)
+  },
   methods: {
     addTime () {
       this.input.times.push({
@@ -318,6 +325,7 @@ export default {
         this.$refs.hour[this.$refs.hour.length - 1].$el.focus()
       })
     },
+
     removeTime (index) {
       const newTimes = []
 
@@ -328,6 +336,12 @@ export default {
       })
 
       this.input.times = newTimes
+    },
+
+    updateStorage () {
+      const json = JSON.stringify(this.input)
+
+      localStorage.setItem('earned_by_hours', json)
     }
   }
 }
