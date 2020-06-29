@@ -312,7 +312,9 @@ export default {
   mounted () {
     const json = JSON.parse(localStorage.getItem('earned_by_hours'))
 
-    this.$set(this, 'input', json)
+    if (localStorage.getItem('earned_by_hours')) {
+      this.$set(this, 'input', json)
+    }
   },
   methods: {
     addTime () {
