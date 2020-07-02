@@ -5,14 +5,14 @@
 </template>
 
 <script>
-import Calculating from '@/components/Calculating'
+  import Calculating from '@/components/Calculating'
 
-export default {
-  name: 'App',
-  components: {
-    Calculating
+  export default {
+    name: 'App',
+    components: {
+      Calculating
+    }
   }
-}
 </script>
 
 <style lang="scss">
