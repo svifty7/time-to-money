@@ -30,4 +30,4 @@ staging:
     url: $STAGING_URL
   script:
     - ssh $STAGING_USER@$STAGING_HOST "rm -rf $STAGING_WEB_ROOT && mkdir $STAGING_WEB_ROOT"
-    - scp -r build/* $STAGING_USER@$STAGING_HOST:$STAGING_WEB_ROOT
+    - scp -r public_html/* $STAGING_USER@$STAGING_HOST:$STAGING_WEB_ROOT/public_html/
