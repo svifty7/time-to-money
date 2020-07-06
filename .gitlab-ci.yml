@@ -4,6 +4,9 @@ stages:
   - staging
 
 before_script:
+  - npm ci
+  - npm run lint
+  - npm run build
   - mkdir -p ~/.ssh
   - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
   - apk add --update openssh
@@ -15,6 +18,9 @@ before_script:
   - ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
 
 staging:
+  artifacts:
+    paths:
+      - public_html
   stage: staging
   only:
     - master
@@ -22,4 +28,5 @@ staging:
     name: deploy
     url: $STAGING_URL
   script:
-    - ssh $STAGING_USER@$STAGING_HOST "source ~/.bash_profile && cd $STAGING_WEB_ROOT && git pull && rm -rf node_modules/ && npm ci && npm run build && echo 'Сайт готов. $STAGING_URL'"
+    - ssh $STAGING_USER@$STAGING_HOST "cd $STAGING_WEB_ROOT && rm -rf ./"
+    - scp -r build/* $STAGING_USER@$STAGING_HOST:$STAGING_WEB_ROOT
