@@ -5,8 +5,7 @@ module.exports = {
   },
   extends: [
     'plugin:vue/essential',
-    '@vue/airbnb',
-    '@vue/typescript/recommended'
+    'airbnb-base',
   ],
   parserOptions: {
     ecmaVersion: 2018
@@ -121,55 +120,6 @@ module.exports = {
     'semi': 'off'
   },
   overrides: [
-    {
-      files: [
-        '**/*.ts',
-        '**/*.tsx',
-        '**/*.ts.vue'
-      ],
-      env: {
-        browser: true,
-        es6: true,
-        node: true
-      },
-      extends: [
-        'eslint:recommended',
-        'plugin:vue/recommended',
-        'plugin:@typescript-eslint/eslint-recommended',
-        'plugin:@typescript-eslint/recommended'
-      ],
-      globals: {
-        Atomics: 'readonly',
-        SharedArrayBuffer: 'readonly',
-        $: 'readonly'
-      },
-      parser: 'vue-eslint-parser',
-      parserOptions: {
-        parser: '@typescript-eslint/parser',
-        ecmaFeatures: {
-          jsx: true
-        },
-        ecmaVersion: 2018,
-        sourceType: 'module',
-        project: './tsconfig.json',
-        extraFileExtensions: [
-          '.ts.vue'
-        ],
-        createDefaultProgram: true
-      },
-      plugins: [
-        'vue',
-        '@typescript-eslint'
-      ],
-      rules: {
-        '@typescript-eslint/no-explicit-any': [
-          0
-        ],
-        '@typescript-eslint/no-non-null-assertion': [
-          0
-        ]
-      }
-    },
     {
       files: [
         '*.vue'
