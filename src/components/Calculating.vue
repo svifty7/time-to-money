@@ -151,15 +151,30 @@
       </transition>
 
       <div class="calculate__output">
-        <span class="calculate__output_title">Вы заработали:</span>
+        <span class="calculate__output_title">На руки после вычета аванса:</span>
         <span class="calculate__output_value">
           {{ ` ${ earned ? earned.toLocaleString() : 0 }&#8381;` }}
         </span>
       </div>
 
       <transition name="opacity"
-                  mode="out-in">
+                  mode="out-in"
+      >
+        <div v-if="compensateEarned"
+             key="compensateEarned"
+             class="calculate__output">
+          <span class="calculate__output_title">На руки до вычета аванса:</span>
+          <span class="calculate__output_value">
+            {{ ` ${ compensateEarned }&#8381;` }}
+          </span>
+        </div>
+      </transition>
+
+      <transition name="opacity"
+                  mode="out-in"
+      >
         <div class="calculate__output"
+             key="moneyLeft"
              v-if="input.requiredAmount && (timeLeft && moneyLeft > 0)">
           <span class="calculate__output_title">До желаемой суммы:</span>
           <span class="calculate__output_value">
@@ -168,6 +183,7 @@
         </div>
 
         <div class="calculate__output"
+             key="successRequired"
              v-else-if="input.requiredAmount && moneyLeft <= 0">
           <span class="calculate__output_title">Желаемая сумма достигнута.</span>
           <span class="calculate__output_value"> Поздравляю! 😇</span>
@@ -251,6 +267,12 @@
         }
 
         return parseFloat(earned.toString()).toFixed(2)
+      },
+
+      compensateEarned() {
+        return this.input.deductAnAdvance
+          ? parseFloat(this.earned * 1 + this.input.advanceValue * 1).toFixed(2)
+          : null
       },
 
       timeLeft() {
