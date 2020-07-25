@@ -410,8 +410,13 @@
 
                 if (storage) {
                     const json = JSON.parse(storage);
+                    const { input } = this;
+                    const keys = Object.keys(input);
+                    const oldStorage = Object.keys(json).filter(key => keys.includes(key)).length;
 
-                    this.$set(this, 'input', json)
+                    if (!oldStorage) {
+                        this.$set(this, 'input', json)
+                    }
                 }
             },
 
