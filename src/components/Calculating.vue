@@ -1,396 +1,416 @@
 <template>
-  <div class="calculate">
-    <h1 class="calculate__title">Подсчет заработанных денег</h1>
-    <form class="calculate__body"
-          @input="updateStorage"
-    >
-      <div v-for="(time, timeKey) in input.times"
-           :key="timeKey"
-           class="calculate__group"
-           :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
-      >
-        <label class="calculate__label">
-          <span v-if="timeKey === 0"
-                class="calculate__label_title"
-                :class="{'required': timeKey === 0}"
-          >Отработано часов</span>
-          <imask-input
-            v-model="time.hours"
-            class="calculate__text"
-            :mask="Number"
-            :min="0"
-            :scale="0"
-            ref="hour"
-            placeholder='Часы'
-            inputmode="numeric"
-            autocomplete="off"
-            autofocus="autofocus"
-          />
-        </label>
-
-        <label class="calculate__label">
-          <span v-if="timeKey === 0"
-                class="calculate__label_title"
-          >Отработано минут</span>
-          <imask-input
-            v-model="time.minutes"
-            class="calculate__text"
-            :mask="Number"
-            :min="0"
-            :max="59"
-            :scale="0"
-            placeholder='Минуты'
-            inputmode="numeric"
-            autocomplete="off"
-          />
-        </label>
-
-        <button v-if="Array.isArray(input.times) && input.times.length > 1"
-                type="button"
-                class="calculate__rm"
-                @click.prevent="removeTime(timeKey)"
-        ></button>
-      </div>
-
-      <button type="button"
-              class="calculate__btn"
-              @click.prevent="addTime"
-      >Добавить время
-      </button>
-
-      <div class="calculate__group">
-        <label class="calculate__label">
-          <span class="calculate__label_title required">Ставка</span>
-          <imask-input
-            v-model="input.rate"
-            class="calculate__text"
-            :mask="Number"
-            :min="0"
-            :scale="2"
-            placeholder='Ставка'
-            inputmode="decimal"
-            autocomplete="on"
-          />
-        </label>
-
-        <label class="calculate__label">
-          <span class="calculate__label_title">Желаемая сумма</span>
-          <imask-input
-            v-model="input.requiredAmount"
-            class="calculate__text"
-            :mask="Number"
-            :min="0"
-            :scale="2"
-            placeholder='Сумма'
-            inputmode="decimal"
-            autocomplete="on"
-          />
-        </label>
-      </div>
-
-      <div class="calculate__group">
-        <label class="calculate__label checkbox">
-          <input type="checkbox"
-                 class="calculate__checkbox"
-                 v-model="input.deductAnAdvance">
-          <span class="calculate__label_title">Вычитать аванс</span>
-        </label>
-
-        <transition name="opacity"
-                    mode="out-in">
-          <label class="calculate__label checkbox"
-                 v-if="input.deductAnAdvance">
-            <input type="checkbox"
-                   class="calculate__checkbox"
-                   v-model="input.inPercent">
-            <span class="calculate__label_title">Аванс в процентах</span>
-          </label>
-        </transition>
-      </div>
-
-      <transition name="opacity"
-                  mode="out-in">
-        <div class="calculate__group"
-             v-if="input.deductAnAdvance">
-          <transition name="opacity"
-                      mode="out-in">
-            <label class="calculate__label"
-                   v-if="input.deductAnAdvance">
-              <span class="calculate__label_title">Размер вычета аванса</span>
-              <imask-input
-                v-model="input.advanceValue"
-                class="calculate__text"
-                :mask="Number"
-                :min="0"
-                :scale="2"
-                placeholder='Размер вычета'
-                inputmode="decimal"
-                autocomplete="on"
-              />
-            </label>
-          </transition>
-
-          <transition name="opacity"
-                      mode="out-in">
-            <label class="calculate__label"
-                   v-if="input.inPercent">
-              <span class="calculate__label_title">Размер оклада</span>
-              <imask-input
-                v-model="input.salary"
-                class="calculate__text"
-                :mask="Number"
-                :min="0"
-                :scale="2"
-                placeholder='Оклад'
-                inputmode="decimal"
-                autocomplete="off"
-              />
-            </label>
-          </transition>
-        </div>
-      </transition>
-
-      <div class="calculate__output">
-        <span class="calculate__output_title">На руки после вычета аванса:</span>
-        <span class="calculate__output_value">
-          {{ ` ${ earned ? earned.toLocaleString() : 0 }&#8381;` }}
-        </span>
-      </div>
-
-      <transition name="opacity"
-                  mode="out-in"
-      >
-        <div v-if="compensateEarned"
-             key="compensateEarned"
-             class="calculate__output">
-          <span class="calculate__output_title">На руки до вычета аванса:</span>
-          <span class="calculate__output_value">
-            {{ ` ${ compensateEarned }&#8381;` }}
-          </span>
-        </div>
-      </transition>
-
-      <transition name="opacity"
-                  mode="out-in"
-      >
-        <div class="calculate__output"
-             key="moneyLeft"
-             v-if="input.requiredAmount && (timeLeft && moneyLeft > 0)">
-          <span class="calculate__output_title">До желаемой суммы:</span>
-          <span class="calculate__output_value">
-            {{ ` ${ moneyLeft.toLocaleString() }&#8381; (${ timeLeft } при текущей ставке)` }}
-          </span>
-        </div>
-
-        <div class="calculate__output"
-             key="successRequired"
-             v-else-if="input.requiredAmount && moneyLeft <= 0">
-          <span class="calculate__output_title">Желаемая сумма достигнута.</span>
-          <span class="calculate__output_value"> Поздравляю! 😇</span>
-        </div>
-      </transition>
-
-      <transition name="opacity"
-                  mode="out-in">
-        <div class="calculate__output"
-             v-if="input.requiredAmount && (compensateTimeLeft && compensateMoneyLeft > 0) && input.deductAnAdvance"
+    <div class="calculate">
+        <h1 class="calculate__title">
+            Подсчет заработанных денег
+        </h1>
+        <form class="calculate__body"
+              @input="updateStorage"
         >
-          <span class="calculate__output_title">Без учета вычтенного аванса:</span>
-          <span class="calculate__output_value">
-            {{ ` ${ compensateMoneyLeft.toLocaleString() }&#8381; (${ compensateTimeLeft } при текущей ставке)` }}
-          </span>
-        </div>
-      </transition>
-    </form>
-  </div>
+            <div v-for="(time, timeKey) in input.times"
+                 :key="timeKey"
+                 class="calculate__group"
+                 :class="{'padding': Array.isArray(input.times) && input.times.length > 1}"
+            >
+                <label class="calculate__label">
+                    <span v-if="timeKey === 0"
+                          class="calculate__label_title"
+                          :class="{'required': timeKey === 0}"
+                    >Отработано часов</span>
+                    <imask-input
+                        ref="hour"
+                        v-model="time.hours"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :scale="0"
+                        placeholder="Часы"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        autofocus="autofocus"
+                    />
+                </label>
+
+                <label class="calculate__label">
+                    <span v-if="timeKey === 0"
+                          class="calculate__label_title"
+                    >Отработано минут</span>
+                    <imask-input
+                        v-model="time.minutes"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :max="59"
+                        :scale="0"
+                        placeholder="Минуты"
+                        inputmode="numeric"
+                        autocomplete="off"
+                    />
+                </label>
+
+                <button v-if="Array.isArray(input.times) && input.times.length > 1"
+                        type="button"
+                        class="calculate__rm"
+                        @click.prevent="removeTime(timeKey)"
+                />
+            </div>
+
+            <button type="button"
+                    class="calculate__btn"
+                    @click.prevent="addTime"
+            >
+                Добавить время
+            </button>
+
+            <div class="calculate__group">
+                <label class="calculate__label">
+                    <span class="calculate__label_title required">Ставка</span>
+                    <imask-input
+                        v-model="input.rate"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :scale="2"
+                        placeholder="Ставка"
+                        inputmode="decimal"
+                        autocomplete="on"
+                    />
+                </label>
+
+                <label class="calculate__label">
+                    <span class="calculate__label_title">Желаемая сумма</span>
+                    <imask-input
+                        v-model="input.requiredAmount"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :scale="2"
+                        placeholder="Сумма"
+                        inputmode="decimal"
+                        autocomplete="on"
+                    />
+                </label>
+            </div>
+
+            <div class="calculate__group">
+                <label class="calculate__label checkbox">
+                    <input v-model="input.deductAnAdvance"
+                           type="checkbox"
+                           class="calculate__checkbox"
+                    >
+                    <span class="calculate__label_title">Вычитать аванс</span>
+                </label>
+
+                <transition name="opacity"
+                            mode="out-in"
+                >
+                    <label v-if="input.deductAnAdvance"
+                           class="calculate__label checkbox"
+                    >
+                        <input v-model="input.inPercent"
+                               type="checkbox"
+                               class="calculate__checkbox"
+                        >
+                        <span class="calculate__label_title">Аванс в процентах</span>
+                    </label>
+                </transition>
+            </div>
+
+            <transition name="opacity"
+                        mode="out-in"
+            >
+                <div v-if="input.deductAnAdvance"
+                     class="calculate__group"
+                >
+                    <transition name="opacity"
+                                mode="out-in"
+                    >
+                        <label v-if="input.deductAnAdvance"
+                               class="calculate__label"
+                        >
+                            <span class="calculate__label_title">Размер вычета аванса</span>
+                            <imask-input
+                                v-model="input.advanceValue"
+                                class="calculate__text"
+                                :mask="Number"
+                                :min="0"
+                                :scale="2"
+                                placeholder="Размер вычета"
+                                inputmode="decimal"
+                                autocomplete="on"
+                            />
+                        </label>
+                    </transition>
+
+                    <transition name="opacity"
+                                mode="out-in"
+                    >
+                        <label v-if="input.inPercent"
+                               class="calculate__label"
+                        >
+                            <span class="calculate__label_title">Размер оклада</span>
+                            <imask-input
+                                v-model="input.salary"
+                                class="calculate__text"
+                                :mask="Number"
+                                :min="0"
+                                :scale="2"
+                                placeholder="Оклад"
+                                inputmode="decimal"
+                                autocomplete="off"
+                            />
+                        </label>
+                    </transition>
+                </div>
+            </transition>
+
+            <div class="calculate__output">
+                <span class="calculate__output_title">На руки после вычета аванса:</span>
+                <span class="calculate__output_value">
+                    {{ ` ${ earned ? earned.toLocaleString() : 0 }&#8381;` }}
+                </span>
+            </div>
+
+            <transition name="opacity"
+                        mode="out-in"
+            >
+                <div v-if="compensateEarned"
+                     key="compensateEarned"
+                     class="calculate__output"
+                >
+                    <span class="calculate__output_title">На руки до вычета аванса:</span>
+                    <span class="calculate__output_value">
+                        {{ ` ${ compensateEarned }&#8381;` }}
+                    </span>
+                </div>
+            </transition>
+
+            <transition name="opacity"
+                        mode="out-in"
+            >
+                <div v-if="input.requiredAmount && (timeLeft && moneyLeft > 0)"
+                     key="moneyLeft"
+                     class="calculate__output"
+                >
+                    <span class="calculate__output_title">До желаемой суммы:</span>
+                    <span class="calculate__output_value">
+                        {{ ` ${ moneyLeft.toLocaleString() }&#8381; (${ timeLeft } при текущей ставке)` }}
+                    </span>
+                </div>
+
+                <div v-else-if="input.requiredAmount && moneyLeft <= 0"
+                     key="successRequired"
+                     class="calculate__output"
+                >
+                    <span class="calculate__output_title">Желаемая сумма достигнута.</span>
+                    <span class="calculate__output_value"> Поздравляю! 😇</span>
+                </div>
+            </transition>
+
+            <transition name="opacity"
+                        mode="out-in"
+            >
+                <div v-if="input.requiredAmount
+                         && (compensateTimeLeft && compensateMoneyLeft > 0)
+                         && input.deductAnAdvance"
+                     class="calculate__output"
+                >
+                    <span class="calculate__output_title">Без учета вычтенного аванса:</span>
+                    <span class="calculate__output_value">
+                        <!-- eslint-disable-next-line max-len -->
+                        {{ ` ${ compensateMoneyLeft.toLocaleString() }&#8381; (${ compensateTimeLeft } при текущей ставке)` }}
+                    </span>
+                </div>
+            </transition>
+        </form>
+    </div>
 </template>
 
 <script>
-  import { IMaskComponent } from 'vue-imask'
+    import { IMaskComponent } from 'vue-imask'
 
-  export default {
-    name: 'Calculating',
-    data() {
-      return {
-        input: {
-          times: [{
-            hours: null,
-            minutes: null
-          }],
-          requiredAmount: null,
-          rate: null,
-          advanceValue: '9000',
-          salary: null,
-          deductAnAdvance: true,
-          inPercent: false
-        }
-      }
-    },
-    components: {
-      'imask-input': IMaskComponent
-    },
-    computed: {
-      sumTime() {
-        let time = 0
+    export default {
+        name: 'Calculating',
+        components: {
+            'imask-input': IMaskComponent
+        },
+        data() {
+            return {
+                input: {
+                    times: [{
+                        hours: null,
+                        minutes: null
+                    }],
+                    requiredAmount: null,
+                    rate: null,
+                    advanceValue: '9000',
+                    salary: null,
+                    deductAnAdvance: true,
+                    inPercent: false
+                }
+            }
+        },
+        computed: {
+            sumTime() {
+                let time = 0
 
-        this.input.times.forEach(el => {
-          if (el.hours) {
-            time += parseInt(el.hours, 10)
-          }
+                this.input.times.forEach(el => {
+                    if (el.hours) {
+                        time += parseInt(el.hours, 10)
+                    }
 
-          if (el.minutes) {
-            time += el.minutes / 60
-          }
-        })
+                    if (el.minutes) {
+                        time += el.minutes / 60
+                    }
+                })
 
-        return time
-      },
+                return time
+            },
 
-      earned() {
-        // eslint-disable-next-line
+            earned() {
+                // eslint-disable-next-line
         const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
 
-        const newRate = rate ? rate.replace(/,/g, '.') : rate
-        const newSalary = salary ? salary.replace(/,/g, '.') : salary
-        const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
+                const newRate = rate ? rate.replace(/,/g, '.') : rate
+                const newSalary = salary ? salary.replace(/,/g, '.') : salary
+                const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
 
-        const yourMoney = this.sumTime * newRate
+                const yourMoney = this.sumTime * newRate
 
-        let earned = 0
+                let earned = 0
 
-        if (!deductAnAdvance) {
-          earned = yourMoney
-        } else if (advanceValue && inPercent) {
-          earned = yourMoney - (newSalary * newAdvanceValue / 100)
-        } else if (advanceValue && !inPercent) {
-          earned = yourMoney - newAdvanceValue
+                if (!deductAnAdvance) {
+                    earned = yourMoney
+                } else if (advanceValue && inPercent) {
+                    earned = yourMoney - (newSalary * newAdvanceValue / 100)
+                } else if (advanceValue && !inPercent) {
+                    earned = yourMoney - newAdvanceValue
+                }
+
+                return parseFloat(earned.toString()).toFixed(2)
+            },
+
+            compensateEarned() {
+                return this.input.deductAnAdvance
+                    ? parseFloat(this.earned * 1 + this.input.advanceValue * 1).toFixed(2)
+                    : null
+            },
+
+            timeLeft() {
+                const { rate, requiredAmount } = this.input
+
+                if (rate && requiredAmount) {
+                    const newRate = rate ? rate.replace(/,/g, '.') : rate
+
+                    const timeLeft = this.moneyLeft / newRate
+                    const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
+                        ? timeLeft.toString().split('.')[0]
+                        : timeLeft.toString())
+                    const calculatedMinutes = timeLeft.toString().split('.')[1]
+                        ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+                        : 0
+                    const optimizedMinutes = parseFloat(
+                        `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
+                            2,
+                            calculatedMinutes.toString().length
+                        )}`
+                    ).toFixed(0)
+
+                    if (optimizedMinutes > 0) {
+                        return `${optimizedHours}:${optimizedMinutes}`
+                    }
+                    return `${optimizedHours}:00`
+                }
+
+                return false
+            },
+
+            compensateTimeLeft() {
+                const { rate, requiredAmount } = this.input
+
+                if (rate && requiredAmount) {
+                    const newRate = rate ? rate.replace(/,/g, '.') : rate
+
+                    const timeLeft = this.compensateMoneyLeft / newRate
+                    const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
+                        ? timeLeft.toString().split('.')[0]
+                        : timeLeft.toString())
+                    const calculatedMinutes = timeLeft.toString().split('.')[1]
+                        ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
+                        : 0
+                    const optimizedMinutes = parseFloat(
+                        `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
+                            2,
+                            calculatedMinutes.toString().length
+                        )}`
+                    ).toFixed(0)
+
+                    if (optimizedMinutes > 0) {
+                        return `${optimizedHours}:${optimizedMinutes}`
+                    }
+                    return `${optimizedHours}:00`
+                }
+
+                return false
+            },
+
+            moneyLeft() {
+                const { requiredAmount } = this.input
+
+                const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
+
+                return newRequiredAmount - this.earned
+            },
+
+            compensateMoneyLeft() {
+                const { requiredAmount, advanceValue } = this.input
+                const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
+
+                const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
+
+                return (newRequiredAmount - this.earned) - newAdvanceValue
+            }
+        },
+        mounted() {
+            const json = JSON.parse(localStorage.getItem('earned_by_hours'))
+
+            if (localStorage.getItem('earned_by_hours')) {
+                this.$set(this, 'input', json)
+            }
+        },
+        methods: {
+            addTime() {
+                this.input.times.push({
+                    hours: null,
+                    minutes: null
+                })
+
+                this.$nextTick(() => {
+                    this.$refs.hour[this.$refs.hour.length - 1].$el.focus()
+                })
+            },
+
+            removeTime(index) {
+                const newTimes = []
+
+                this.input.times.forEach((time, timeIndex) => {
+                    if (timeIndex !== index) {
+                        newTimes.push(JSON.parse(JSON.stringify(time)))
+                    }
+                })
+
+                this.input.times = newTimes
+            },
+
+            updateStorage() {
+                const json = JSON.stringify(this.input)
+
+                localStorage.setItem('earned_by_hours', json)
+            }
         }
-
-        return parseFloat(earned.toString()).toFixed(2)
-      },
-
-      compensateEarned() {
-        return this.input.deductAnAdvance
-          ? parseFloat(this.earned * 1 + this.input.advanceValue * 1).toFixed(2)
-          : null
-      },
-
-      timeLeft() {
-        const { rate, requiredAmount } = this.input
-
-        if (rate && requiredAmount) {
-          const newRate = rate ? rate.replace(/,/g, '.') : rate
-
-          const timeLeft = this.moneyLeft / newRate
-          const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
-            ? timeLeft.toString().split('.')[0]
-            : timeLeft.toString())
-          const calculatedMinutes = timeLeft.toString().split('.')[1]
-            ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
-            : 0
-          const optimizedMinutes = parseFloat(
-            `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
-              2,
-              calculatedMinutes.toString().length
-            )}`
-          ).toFixed(0)
-
-          if (optimizedMinutes > 0) {
-            return `${optimizedHours}:${optimizedMinutes}`
-          }
-          return `${optimizedHours}:00`
-        }
-
-        return false
-      },
-
-      compensateTimeLeft() {
-        const { rate, requiredAmount } = this.input
-
-        if (rate && requiredAmount) {
-          const newRate = rate ? rate.replace(/,/g, '.') : rate
-
-          const timeLeft = this.compensateMoneyLeft / newRate
-          const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
-            ? timeLeft.toString().split('.')[0]
-            : timeLeft.toString())
-          const calculatedMinutes = timeLeft.toString().split('.')[1]
-            ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
-            : 0
-          const optimizedMinutes = parseFloat(
-            `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
-              2,
-              calculatedMinutes.toString().length
-            )}`
-          ).toFixed(0)
-
-          if (optimizedMinutes > 0) {
-            return `${optimizedHours}:${optimizedMinutes}`
-          }
-          return `${optimizedHours}:00`
-        }
-
-        return false
-      },
-
-      moneyLeft() {
-        const { requiredAmount } = this.input
-
-        const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
-
-        return newRequiredAmount - this.earned
-      },
-
-      compensateMoneyLeft() {
-        const { requiredAmount, advanceValue } = this.input
-        const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
-
-        const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
-
-        return (newRequiredAmount - this.earned) - newAdvanceValue
-      }
-    },
-    mounted() {
-      const json = JSON.parse(localStorage.getItem('earned_by_hours'))
-
-      if (localStorage.getItem('earned_by_hours')) {
-        this.$set(this, 'input', json)
-      }
-    },
-    methods: {
-      addTime() {
-        this.input.times.push({
-          hours: null,
-          minutes: null
-        })
-
-        this.$nextTick(() => {
-          this.$refs.hour[this.$refs.hour.length - 1].$el.focus()
-        })
-      },
-
-      removeTime(index) {
-        const newTimes = []
-
-        this.input.times.forEach((time, timeIndex) => {
-          if (timeIndex !== index) {
-            newTimes.push(JSON.parse(JSON.stringify(time)))
-          }
-        })
-
-        this.input.times = newTimes
-      },
-
-      updateStorage() {
-        const json = JSON.stringify(this.input)
-
-        localStorage.setItem('earned_by_hours', json)
-      }
     }
-  }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   $black: #2c3e50;
   $green: #42b983;
   $white: #ffffff;

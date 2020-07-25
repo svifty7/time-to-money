@@ -1,4 +1,4 @@
 module.exports = {
-  outputDir: 'public_html',
-  productionSourceMap: false
+    outputDir: 'public_html',
+    productionSourceMap: false
 }

@@ -1,18 +1,25 @@
 <template>
-  <div id="app">
-    <Calculating/>
-  </div>
+    <div id="app">
+        <el-container>
+            <el-main>
+                <element-calc v-if="true"/>
+                <Calculating v-else/>
+            </el-main>
+        </el-container>
+    </div>
 </template>
 
 <script>
-  import Calculating from '@/components/Calculating'
+    import Calculating from '@/components/Calculating'
+    import ElementCalc from '@/components/ElementCalc'
 
-  export default {
-    name: 'App',
-    components: {
-      Calculating
+    export default {
+        name: 'App',
+        components: {
+            ElementCalc,
+            Calculating
+        }
     }
-  }
 </script>
 
 <style lang="scss">
