@@ -3,7 +3,7 @@
         <el-container>
             <el-main>
                 <element-calc v-if="true"/>
-                <Calculating v-else/>
+                <calculating v-else/>
             </el-main>
         </el-container>
     </div>

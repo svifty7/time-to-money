@@ -185,7 +185,7 @@
                     paidOut: '', // Выплачено
                     desired: '' // Желаемая сумма
                 },
-                regExp: /^((\d{1,3})(?:\s[0-9]{3})?|(\d)(?:\s[0-9]{3}){0,2}|(\d{1,7}))(\.\d{1,2})?$/g,
+                regExp: /^((\d{1,3})(?:[0-9]{3})?|(\d)(?:[0-9]{3}){0,2}|(\d{1,7}))(\.\d{1,2})?$/g,
                 localStorageKey: 'earned_by_hours'
             }
         },
@@ -310,10 +310,14 @@
             },
 
             formatStringToMoney(str) {
-                const { regExp } = this
+                const { regExp } = this;
+                let formatString = str.replace(/,/g, ".");
 
-                if (str.match(regExp)) {
-                    return this.mathRound(str)
+                formatString = formatString.replace(/\s/g, '');
+
+                console.log(str, formatString)
+                if (formatString.match(regExp)) {
+                    return this.mathRound(formatString)
                 }
 
                 return 0
@@ -412,10 +416,27 @@
                     const json = JSON.parse(storage);
                     const { input } = this;
                     const keys = Object.keys(input);
-                    const oldStorage = Object.keys(json).filter(key => keys.includes(key)).length;
+                    const oldStorage = Object.keys(json).filter(key => !keys.includes(key)).length;
 
                     if (!oldStorage) {
                         this.$set(this, 'input', json)
+                    } else {
+                        const newStorage = {
+                            rate: json.rate ? json.rate.toString(10) : '',
+                            advance: json.advanceValue ? json.advanceValue.toString(10) : '',
+                            desired: json.requiredAmount ? json.requiredAmount.toString(10) : '',
+                            paidOut: '',
+                            times: []
+                        }
+
+                        json.times.forEach(time => {
+                            newStorage.times.push({
+                                hours: time.hours ? parseInt(time.hours, 10) : 0,
+                                minutes: time.minutes ? parseInt(time.minutes, 10) : 0,
+                            })
+                        })
+
+                        this.$set(this, 'input', newStorage)
                     }
                 }
             },
