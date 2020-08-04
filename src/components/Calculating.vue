@@ -3,9 +3,8 @@
         <h1 class="calculate__title">
             Подсчет заработанных денег
         </h1>
-        <form class="calculate__body"
-              @input="updateStorage"
-        >
+
+        <form class="calculate__body">
             <div v-for="(time, timeKey) in input.times"
                  :key="timeKey"
                  class="calculate__group"
@@ -16,9 +15,10 @@
                           class="calculate__label_title"
                           :class="{'required': timeKey === 0}"
                     >Отработано часов</span>
-                    <imask-input
+
+                    <input
                         ref="hour"
-                        v-model="time.hours"
+                        v-model.number.trim="time.hours"
                         class="calculate__text"
                         :mask="Number"
                         :min="0"
@@ -27,15 +27,16 @@
                         inputmode="numeric"
                         autocomplete="off"
                         autofocus="autofocus"
-                    />
+                    >
                 </label>
 
                 <label class="calculate__label">
                     <span v-if="timeKey === 0"
                           class="calculate__label_title"
                     >Отработано минут</span>
-                    <imask-input
-                        v-model="time.minutes"
+
+                    <input
+                        v-model.number.trim="time.minutes"
                         class="calculate__text"
                         :mask="Number"
                         :min="0"
@@ -44,22 +45,31 @@
                         placeholder="Минуты"
                         inputmode="numeric"
                         autocomplete="off"
-                    />
+                    >
                 </label>
 
-                <button v-if="Array.isArray(input.times) && input.times.length > 1"
+                <button v-if="input.times.length > 1"
                         type="button"
                         class="calculate__rm"
                         @click.prevent="removeTime(timeKey)"
                 />
             </div>
 
-            <button type="button"
-                    class="calculate__btn"
-                    @click.prevent="addTime"
-            >
-                Добавить время
-            </button>
+            <div class="calculate__group">
+                <button type="button"
+                        class="calculate__btn"
+                        @click.prevent="input.times.push({ hours: '', minutes: '' })"
+                >
+                    Добавить время
+                </button>
+
+                <button type="button"
+                        class="calculate__btn not-sm"
+                        @click.prevent="input.times.push({ hours: '', minutes: '' })"
+                >
+                    Удалить время
+                </button>
+            </div>
 
             <div class="calculate__group">
                 <label class="calculate__label">
@@ -77,9 +87,39 @@
                 </label>
 
                 <label class="calculate__label">
+                    <span class="calculate__label_title">Аванс</span>
+                    <imask-input
+                        v-model="input.advance"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :scale="2"
+                        placeholder="Размер вычета"
+                        inputmode="decimal"
+                        autocomplete="on"
+                    />
+                </label>
+            </div>
+
+            <div class="calculate__group">
+                <label class="calculate__label">
                     <span class="calculate__label_title">Желаемая сумма</span>
                     <imask-input
-                        v-model="input.requiredAmount"
+                        v-model="input.desired"
+                        class="calculate__text"
+                        :mask="Number"
+                        :min="0"
+                        :scale="2"
+                        placeholder="Сумма"
+                        inputmode="decimal"
+                        autocomplete="on"
+                    />
+                </label>
+
+                <label class="calculate__label">
+                    <span class="calculate__label_title">Выплачено дополнительно</span>
+                    <imask-input
+                        v-model="input.paidOut"
                         class="calculate__text"
                         :mask="Number"
                         :min="0"
@@ -90,138 +130,44 @@
                     />
                 </label>
             </div>
-
-            <div class="calculate__group">
-                <label class="calculate__label checkbox">
-                    <input v-model="input.deductAnAdvance"
-                           type="checkbox"
-                           class="calculate__checkbox"
-                    >
-                    <span class="calculate__label_title">Вычитать аванс</span>
-                </label>
-
-                <transition name="opacity"
-                            mode="out-in"
-                >
-                    <label v-if="input.deductAnAdvance"
-                           class="calculate__label checkbox"
-                    >
-                        <input v-model="input.inPercent"
-                               type="checkbox"
-                               class="calculate__checkbox"
-                        >
-                        <span class="calculate__label_title">Аванс в процентах</span>
-                    </label>
-                </transition>
-            </div>
-
-            <transition name="opacity"
-                        mode="out-in"
-            >
-                <div v-if="input.deductAnAdvance"
-                     class="calculate__group"
-                >
-                    <transition name="opacity"
-                                mode="out-in"
-                    >
-                        <label v-if="input.deductAnAdvance"
-                               class="calculate__label"
-                        >
-                            <span class="calculate__label_title">Размер вычета аванса</span>
-                            <imask-input
-                                v-model="input.advanceValue"
-                                class="calculate__text"
-                                :mask="Number"
-                                :min="0"
-                                :scale="2"
-                                placeholder="Размер вычета"
-                                inputmode="decimal"
-                                autocomplete="on"
-                            />
-                        </label>
-                    </transition>
-
-                    <transition name="opacity"
-                                mode="out-in"
-                    >
-                        <label v-if="input.inPercent"
-                               class="calculate__label"
-                        >
-                            <span class="calculate__label_title">Размер оклада</span>
-                            <imask-input
-                                v-model="input.salary"
-                                class="calculate__text"
-                                :mask="Number"
-                                :min="0"
-                                :scale="2"
-                                placeholder="Оклад"
-                                inputmode="decimal"
-                                autocomplete="off"
-                            />
-                        </label>
-                    </transition>
-                </div>
-            </transition>
-
-            <div class="calculate__output">
-                <span class="calculate__output_title">На руки после вычета аванса:</span>
-                <span class="calculate__output_value">
-                    {{ ` ${ earned ? earned.toLocaleString() : 0 }&#8381;` }}
-                </span>
-            </div>
-
-            <transition name="opacity"
-                        mode="out-in"
-            >
-                <div v-if="compensateEarned"
-                     key="compensateEarned"
-                     class="calculate__output"
-                >
-                    <span class="calculate__output_title">На руки до вычета аванса:</span>
-                    <span class="calculate__output_value">
-                        {{ ` ${ compensateEarned }&#8381;` }}
-                    </span>
-                </div>
-            </transition>
-
-            <transition name="opacity"
-                        mode="out-in"
-            >
-                <div v-if="input.requiredAmount && (timeLeft && moneyLeft > 0)"
-                     key="moneyLeft"
-                     class="calculate__output"
-                >
-                    <span class="calculate__output_title">До желаемой суммы:</span>
-                    <span class="calculate__output_value">
-                        {{ ` ${ moneyLeft.toLocaleString() }&#8381; (${ timeLeft } при текущей ставке)` }}
-                    </span>
-                </div>
-
-                <div v-else-if="input.requiredAmount && moneyLeft <= 0"
-                     key="successRequired"
-                     class="calculate__output"
-                >
-                    <span class="calculate__output_title">Желаемая сумма достигнута.</span>
-                    <span class="calculate__output_value"> Поздравляю! 😇</span>
-                </div>
-            </transition>
-
-            <transition name="opacity"
-                        mode="out-in"
-            >
-                <div v-if="input.requiredAmount
-                         && (compensateTimeLeft && compensateMoneyLeft > 0)
-                         && input.deductAnAdvance"
-                     class="calculate__output"
-                >
-                    <span class="calculate__output_title">Без учета вычтенного аванса:</span>
-                    <span class="calculate__output_value">
-                        <!-- eslint-disable-next-line max-len -->
-                        {{ ` ${ compensateMoneyLeft.toLocaleString() }&#8381; (${ compensateTimeLeft } при текущей ставке)` }}
-                    </span>
-                </div>
-            </transition>
         </form>
+
+        <table class="calculate__table">
+            <thead class="calculate__table_head">
+                <th class="calculate__table_cell">
+                    Наименование
+                </th>
+                <th class="calculate__table_cell value">
+                    Заработано (рубли)
+                </th>
+                <th class="calculate__table_cell value">
+                    Осталось (рубли)
+                </th>
+                <th class="calculate__table_cell value">
+                    Осталось (время)
+                </th>
+            </thead>
+
+            <tbody>
+                <tr v-for="(row, rowKey) in table"
+                    :key="rowKey"
+                    class="calculate__table_row"
+                >
+                    <td class="calculate__table_cell">
+                        {{ row.name }}
+                    </td>
+                    <td class="calculate__table_cell value">
+                        {{ row.money }}
+                    </td>
+                    <td class="calculate__table_cell value">
+                        {{ row.moneyLeft }}
+                    </td>
+                    <td class="calculate__table_cell value">
+                        {{ row.timeLeft }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </template>
 
@@ -237,386 +183,500 @@
             return {
                 input: {
                     times: [{
-                        hours: null,
-                        minutes: null
-                    }],
-                    requiredAmount: null,
-                    rate: null,
-                    advanceValue: '9000',
-                    salary: null,
-                    deductAnAdvance: true,
-                    inPercent: false
-                }
+                        hours: '',
+                        minutes: ''
+                    }], // Время
+                    rate: '', // Ставка
+                    advance: '', // Аванс
+                    paidOut: '', // Выплачено
+                    desired: '' // Желаемая сумма
+                },
+                regExp: /^((\d{1,3})(?:[0-9]{3})?|(\d)(?:[0-9]{3}){0,2}|(\d{1,7}))(\.\d{1,2})?$/g,
+                localStorageKey: 'earned_by_hours'
             }
         },
         computed: {
-            sumTime() {
-                let time = 0
+            timeSum() /* number */ {
+                const { times } = this.input
 
-                this.input.times.forEach(el => {
-                    if (el.hours) {
-                        time += parseInt(el.hours, 10)
-                    }
+                let timeSum /* number */ = 0
 
-                    if (el.minutes) {
-                        time += el.minutes / 60
+                times.forEach(time /* Object */ => {
+                    timeSum += time.hours ? time.hours : 0
+                    timeSum += time.minutes ? time.minutes / 60 : 0
+                })
+
+                return timeSum
+            },
+
+            formatRate() /* number */ {
+                const { rate } = this.input
+
+                return this.formatStringToMoney(rate)
+            },
+
+            formatAdvance() /* number */ {
+                const { advance } = this.input
+
+                return this.formatStringToMoney(advance)
+            },
+
+            formatPaidOut() /* number */ {
+                const { paidOut } = this.input
+
+                return this.formatStringToMoney(paidOut)
+            },
+
+            formatDesired() /* number */ {
+                const { desired } = this.input
+
+                return this.formatStringToMoney(desired)
+            },
+
+            result() /* Array */ {
+                return [{
+                    name: 'Всего за месяц',
+                    money: this.earned,
+                    main: true
+                }, {
+                    name: 'После вычета аванса',
+                    money: this.earnedAdvance,
+                }, {
+                    name: 'После вычета выплаченного',
+                    money: this.earnedPaidOut,
+                }, {
+                    name: 'После всех выплат',
+                    money: this.earnedAdvanceAndPaidOut,
+                }]
+            },
+
+            table() /* object */ {
+                const { result } = this
+                const main /* object */ = result.find(item => item.main)
+
+                if (!main.money) return []
+
+                const formattedObj /* object */ = obj /* object */ => ({
+                    ...this.desiredLeft(obj.money),
+                    name: obj.name,
+                    money: obj.money,
+                })
+                const formattedResult /* object */ = [formattedObj(main)]
+
+                result.forEach(obj /* object */ => {
+                    if (!obj.main && obj.money && obj.money !== main.money) {
+                        formattedResult.push(formattedObj(obj))
                     }
                 })
 
-                return time
+                return formattedResult
             },
 
-            earned() {
-                // eslint-disable-next-line
-        const { rate, salary, advanceValue, deductAnAdvance, inPercent } = this.input
-
-                const newRate = rate ? rate.replace(/,/g, '.') : rate
-                const newSalary = salary ? salary.replace(/,/g, '.') : salary
-                const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
-
-                const yourMoney = this.sumTime * newRate
-
-                let earned = 0
-
-                if (!deductAnAdvance) {
-                    earned = yourMoney
-                } else if (advanceValue && inPercent) {
-                    earned = yourMoney - (newSalary * newAdvanceValue / 100)
-                } else if (advanceValue && !inPercent) {
-                    earned = yourMoney - newAdvanceValue
-                }
-
-                return parseFloat(earned.toString()).toFixed(2)
+            isTableShow() {
+                return this.table.length
             },
 
-            compensateEarned() {
-                return this.input.deductAnAdvance
-                    ? parseFloat(this.earned * 1 + this.input.advanceValue * 1).toFixed(2)
-                    : null
+            earned() /* number */ {
+                const rate /* number|boolean */ = this.formatRate
+                const { timeSum } = this
+
+                return rate ? this.mathRound(rate * timeSum) : 0
             },
 
-            timeLeft() {
-                const { rate, requiredAmount } = this.input
-
-                if (rate && requiredAmount) {
-                    const newRate = rate ? rate.replace(/,/g, '.') : rate
-
-                    const timeLeft = this.moneyLeft / newRate
-                    const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
-                        ? timeLeft.toString().split('.')[0]
-                        : timeLeft.toString())
-                    const calculatedMinutes = timeLeft.toString().split('.')[1]
-                        ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
-                        : 0
-                    const optimizedMinutes = parseFloat(
-                        `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
-                            2,
-                            calculatedMinutes.toString().length
-                        )}`
-                    ).toFixed(0)
-
-                    if (optimizedMinutes > 0) {
-                        return `${optimizedHours}:${optimizedMinutes}`
-                    }
-                    return `${optimizedHours}:00`
-                }
-
-                return false
+            earnedAdvance() /* number */ {
+                return this.earned - this.formatAdvance > 0
+                    ? this.mathRound(this.earned - this.formatAdvance)
+                    : 0
             },
 
-            compensateTimeLeft() {
-                const { rate, requiredAmount } = this.input
-
-                if (rate && requiredAmount) {
-                    const newRate = rate ? rate.replace(/,/g, '.') : rate
-
-                    const timeLeft = this.compensateMoneyLeft / newRate
-                    const optimizedHours = parseFloat(timeLeft.toString().split('.')[0]
-                        ? timeLeft.toString().split('.')[0]
-                        : timeLeft.toString())
-                    const calculatedMinutes = timeLeft.toString().split('.')[1]
-                        ? parseFloat(timeLeft.toString().split('.')[1]) * 60 - this.sumTime
-                        : 0
-                    const optimizedMinutes = parseFloat(
-                        `${calculatedMinutes.toString().slice(0, 2)}.${calculatedMinutes.toString().slice(
-                            2,
-                            calculatedMinutes.toString().length
-                        )}`
-                    ).toFixed(0)
-
-                    if (optimizedMinutes > 0) {
-                        return `${optimizedHours}:${optimizedMinutes}`
-                    }
-                    return `${optimizedHours}:00`
-                }
-
-                return false
+            earnedPaidOut() /* number */ {
+                return this.earned - this.formatPaidOut > 0
+                    ? this.mathRound(this.earned - this.formatPaidOut)
+                    : 0
             },
 
-            moneyLeft() {
-                const { requiredAmount } = this.input
+            earnedAdvanceAndPaidOut() /* number */ {
+                const { earned } = this
+                const advance /* number */ = this.formatAdvance
+                const paidOut /* number */ = this.formatPaidOut
+                const res /* number */ = this.mathRound(earned - advance - paidOut)
 
-                const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
-
-                return newRequiredAmount - this.earned
+                return res > 0 ? res : 0
             },
-
-            compensateMoneyLeft() {
-                const { requiredAmount, advanceValue } = this.input
-                const newAdvanceValue = advanceValue ? advanceValue.replace(/,/g, '.') : advanceValue
-
-                const newRequiredAmount = requiredAmount ? requiredAmount.replace(/,/g, '.') : requiredAmount
-
-                return (newRequiredAmount - this.earned) - newAdvanceValue
-            }
         },
-        mounted() {
-            const json = JSON.parse(localStorage.getItem('earned_by_hours'))
-
-            if (localStorage.getItem('earned_by_hours')) {
-                this.$set(this, 'input', json)
-            }
+        updated() {
+            this.setLocalStorage()
+        },
+        created() {
+            this.getLocalStorage()
         },
         methods: {
-            addTime() {
-                this.input.times.push({
-                    hours: null,
-                    minutes: null
-                })
-
-                this.$nextTick(() => {
-                    this.$refs.hour[this.$refs.hour.length - 1].$el.focus()
-                })
+            removeTime(index = this.input.times.length - 1) {
+                this.$set(this.input, 'times', this.input.times.filter((item, idx) => index !== idx))
             },
 
-            removeTime(index) {
-                const newTimes = []
+            formatStringToMoney(str) {
+                const { regExp } = this
+                let formatString = str.replace(/,/g, '.')
 
-                this.input.times.forEach((time, timeIndex) => {
-                    if (timeIndex !== index) {
-                        newTimes.push(JSON.parse(JSON.stringify(time)))
+                formatString = formatString.replace(/\s/g, '')
+
+                if (formatString.match(regExp)) {
+                    return this.mathRound(formatString)
+                }
+
+                return 0
+            },
+
+            mathRound(number) {
+                return Math.round(number * 100) / 100
+            },
+
+            convertTimeToObj(time) {
+                let timeObj = {
+                    hours: 0,
+                    min: 0
+                }
+
+                if (time) {
+                    const timeStr /* string */ = time.toString(10)
+                    const strArr /* string[] */ = timeStr.split('.')
+                    const hours /* number */ = parseInt(strArr[0], 10)
+                    const min /* number */ = Math.round((time - hours) * 60)
+
+                    timeObj = {
+                        hours,
+                        min
                     }
-                })
+                }
 
-                this.input.times = newTimes
+                return timeObj
             },
 
-            updateStorage() {
+            createTimeStr(time) {
+                const {
+                    hours,
+                    min
+                } = this.convertTimeToObj(time)
+
+                if (hours) {
+                    if (min) {
+                        return `${hours} ч. ${min} мин.`
+                    }
+
+                    return `${hours} ч.`
+                }
+
+                if (min <= 0) {
+                    return `Несколько секунд`
+                }
+
+                return `${min} мин.`
+            },
+
+            desiredLeft(money) /* object */ {
+                const rate /* number */ = this.formatRate
+                const desired /* number */ = this.formatDesired
+                const moneyLeft /* number */ = desired - money
+                const timeLeft /* number */ = moneyLeft / rate
+
+                if (moneyLeft > 0) {
+                    return {
+                        moneyLeft: moneyLeft > 0
+                            ? this.mathRound(moneyLeft)
+                            : 0,
+                        timeLeft: timeLeft > 0
+                            ? this.createTimeStr(timeLeft)
+                            : 0,
+                    }
+                }
+
+                return {
+                    success: 'Цель достигнута! 😇'
+                }
+            },
+
+            getLocalStorage() {
+                const storage = localStorage.getItem(this.localStorageKey)
+
+                if (storage) {
+                    const json = JSON.parse(storage)
+                    const { input } = this
+                    const keys = Object.keys(input)
+                    const oldStorage = Object.keys(json).filter(key => !keys.includes(key)).length
+
+                    if (!oldStorage) {
+                        this.$set(this, 'input', json)
+                    } else {
+                        const newStorage = {
+                            rate: json.rate ? json.rate.toString(10) : '',
+                            advance: json.advanceValue ? json.advanceValue.toString(10) : '',
+                            desired: json.requiredAmount ? json.requiredAmount.toString(10) : '',
+                            paidOut: '',
+                            times: []
+                        }
+
+                        json.times.forEach(time => {
+                            newStorage.times.push({
+                                hours: time.hours ? parseInt(time.hours, 10) : 0,
+                                minutes: time.minutes ? parseInt(time.minutes, 10) : 0,
+                            })
+                        })
+
+                        this.$set(this, 'input', newStorage)
+                    }
+                }
+            },
+
+            setLocalStorage() {
                 const json = JSON.stringify(this.input)
 
-                localStorage.setItem('earned_by_hours', json)
+                localStorage.setItem(this.localStorageKey, json)
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-  $black: #2c3e50;
-  $green: #42b983;
-  $white: #ffffff;
-  $red: #DE0F07;
+    $black: #2c3e50;
+    $green: #42b983;
+    $white: #ffffff;
+    $red: #DE0F07;
 
-  .calculate {
-    width: 100%;
-    user-select: none;
-    overflow: auto;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    &__title {
-      text-align: left;
-      padding: 32px 16px 16px;
-      font-size: 24px;
-      font-weight: 800;
-      margin: 0;
-
-      @media screen and (min-width: 562px) {
-        text-align: center;
-      }
-    }
-
-    &__body {
-      padding: 16px 16px 32px;
-      max-width: 460px;
-      width: 100%;
-    }
-
-    input {
-      border: 1px solid transparentize($black, .5);
-      border-radius: 4px;
-      padding: 4px 8px;
-      user-select: initial;
-      color: $black;
-    }
-
-    &__group {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-
-      @media screen and (min-width: 562px) {
-        flex-direction: row;
-        justify-content: space-between;
-      }
-
-      .calculate__label {
+    .calculate {
         width: 100%;
+        user-select: none;
+        overflow: auto;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 16px 32px;
 
-        @media screen and (min-width: 562px) {
-          width: calc(50% - 6px);
-        }
-      }
+        &__title {
+            text-align: left;
+            padding: 16px 0;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
 
-      &.padding {
-        @media screen and (min-width: 562px) {
-          padding-right: 28px + 12px;
+            @media screen and (min-width: 562px) {
+                text-align: center;
+            }
         }
-      }
+
+        &__body {
+            padding: 0 0 16px;
+            max-width: 460px;
+            width: 100%;
+        }
+
+        input {
+            border: 1px solid transparentize($black, .5);
+            border-radius: 4px;
+            padding: 4px 8px;
+            user-select: initial;
+            color: $black;
+        }
+
+        &__group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+
+            @media screen and (min-width: 562px) {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .calculate__label {
+                width: 100%;
+
+                @media screen and (min-width: 562px) {
+                    width: calc(50% - 6px);
+                }
+            }
+
+            &.padding {
+                @media screen and (min-width: 562px) {
+                    padding-right: 28px + 12px;
+                }
+            }
+        }
+
+        &__label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 12px;
+
+            &_title {
+                color: $black;
+                margin-bottom: 4px;
+                font-size: 14px;
+                padding-left: 8px;
+
+                &.required {
+                    &:after {
+                        content: '*';
+                        color: $red;
+                        margin-left: 2px;
+                    }
+                }
+            }
+
+            &.checkbox {
+                flex-direction: row;
+
+                .calculate__label_title {
+                    margin-top: 0;
+                    text-align: left;
+                    padding-left: 4px;
+                }
+            }
+        }
+
+        &__text {
+            width: 100%;
+            font-size: 16px;
+        }
+
+        &__output {
+            text-align: left;
+            margin-top: 12px;
+            width: 100%;
+            max-width: 460px;
+
+            &_value {
+                font-weight: 700;
+            }
+        }
+
+        &__btn {
+            display: flex;
+            width: 100%;
+            line-height: 32px;
+            padding: 0 12px;
+            margin-top: 12px;
+            background-color: $black;
+            border: 1px solid $black;
+            border-radius: 4px;
+            color: $white;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            appearance: none;
+            cursor: pointer;
+
+            @media screen and (min-width: 562px) {
+                transition: all ease-in-out .2s;
+
+                &:hover {
+                    transition: all ease-in-out .2s;
+                    background-color: lighten($black, 5%);
+                    border-color: lighten($black, 5%);
+                }
+            }
+
+            &.not-sm {
+                @media screen and (max-width: 562px) {
+                    display: none;
+                }
+            }
+        }
+
+        &__rm {
+            display: flex;
+            width: 100%;
+            line-height: 32px;
+            padding: 0 12px;
+            margin-top: 12px;
+            background-color: darken($red, 3%);
+            border: 1px solid darken($red, 3%);
+            border-radius: 4px;
+            color: $white;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            appearance: none;
+            cursor: pointer;
+
+            @media screen and (min-width: 562px) {
+                width: 28px;
+                height: 28px;
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                transition: all ease-in-out .2s;
+
+                &:hover {
+                    transition: all ease-in-out .2s;
+                    background-color: lighten($red, 3%);
+                    border-color: lighten($red, 3%);
+                }
+            }
+
+            &:after {
+                content: 'Удалить время';
+
+                @media screen and (min-width: 562px) {
+                    transform: rotate(45deg);
+                }
+            }
+
+            &:before {
+                @media screen and (min-width: 562px) {
+                    transform: rotate(-45deg);
+                }
+            }
+
+            &:before, &:after {
+                @media screen and (min-width: 562px) {
+                    content: '';
+                    width: 14px;
+                    height: 2px;
+                    display: block;
+                    background-color: currentColor;
+                    position: absolute;
+                }
+            }
+        }
+
+        &__table {
+            border-collapse: collapse;
+            border: 1px solid lighten($black, 40%);
+
+            &_head {
+                background-color: lighten($black, 70%);
+            }
+
+            &_row {
+                border: 1px solid lighten($black, 40%);
+            }
+
+            &_cell {
+                text-align: left;
+                padding: 16px 8px;
+                border: 1px solid lighten($black, 40%);
+
+                &.value {
+                    font-weight: 700;
+                    text-align: right;
+                }
+            }
+        }
     }
 
-    &__label {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      width: 100%;
-      cursor: pointer;
-      margin-top: 12px;
-
-      &_title {
-        color: $black;
-        margin-bottom: 4px;
-        font-size: 14px;
-        padding-left: 8px;
-
-        &.required {
-          &:after {
-            content: '*';
-            color: $red;
-            margin-left: 2px;
-          }
+    .opacity {
+        &-enter-active, &-leave-active {
+            transition: all .3s ease;
         }
-      }
 
-      &.checkbox {
-        flex-direction: row;
-
-        .calculate__label_title {
-          margin-top: 0;
-          text-align: left;
-          padding-left: 4px;
+        &-enter, &-leave-to {
+            transform: translateX(10px);
+            opacity: 0;
         }
-      }
     }
-
-    &__text {
-      width: 100%;
-      font-size: 16px;
-    }
-
-    &__output {
-      text-align: left;
-      margin-top: 12px;
-
-      &_value {
-        font-weight: 700;
-      }
-    }
-
-    &__btn {
-      display: flex;
-      width: 100%;
-      line-height: 32px;
-      padding: 0 12px;
-      margin-top: 12px;
-      background-color: $black;
-      border: 1px solid $black;
-      border-radius: 4px;
-      color: $white;
-      text-align: center;
-      justify-content: center;
-      align-items: center;
-      appearance: none;
-      cursor: pointer;
-
-      @media screen and (min-width: 562px) {
-        transition: all ease-in-out .2s;
-
-        &:hover {
-          transition: all ease-in-out .2s;
-          background-color: lighten($black, 5%);
-          border-color: lighten($black, 5%);
-        }
-      }
-    }
-
-    &__rm {
-      display: flex;
-      width: 100%;
-      line-height: 32px;
-      padding: 0 12px;
-      margin-top: 12px;
-      background-color: darken($red, 3%);
-      border: 1px solid darken($red, 3%);
-      border-radius: 4px;
-      color: $white;
-      text-align: center;
-      justify-content: center;
-      align-items: center;
-      appearance: none;
-      cursor: pointer;
-
-      @media screen and (min-width: 562px) {
-        width: 28px;
-        height: 28px;
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        transition: all ease-in-out .2s;
-
-        &:hover {
-          transition: all ease-in-out .2s;
-          background-color: lighten($red, 3%);
-          border-color: lighten($red, 3%);
-        }
-      }
-
-      &:after {
-        content: 'Удалить время';
-
-        @media screen and (min-width: 562px) {
-          transform: rotate(45deg);
-        }
-      }
-
-      &:before {
-        @media screen and (min-width: 562px) {
-          transform: rotate(-45deg);
-        }
-      }
-
-      &:before, &:after {
-        @media screen and (min-width: 562px) {
-          content: '';
-          width: 14px;
-          height: 2px;
-          display: block;
-          background-color: currentColor;
-          position: absolute;
-        }
-      }
-    }
-  }
-
-  .opacity {
-    &-enter-active, &-leave-active {
-      transition: all .3s ease;
-    }
-
-    &-enter, &-leave-to {
-      transform: translateX(10px);
-      opacity: 0;
-    }
-  }
 </style>

@@ -1,173 +1,122 @@
 <template>
-    <el-container class="calculate">
-        <el-col>
-            <el-row :gutter="18"
-                    type="flex"
-                    justify="center"
+    <form class="calculate">
+        <h2>Подсчет заработанных денег</h2>
+
+        <div class="calculate__label">
+            Затраченное время
+        </div>
+
+        <div v-for="(time, timeKey) in input.times"
+             :key="timeKey"
+             class="calculate__row"
+        >
+            <el-input-number v-model="time.hours"
+                             placeholder="Часы"
+                             step-strictly
+                             :min="0"
+                             :step="1"
+                             label="Часы"
+                             :controls-position="isPhone ? '' : 'right'"
+            />
+
+            <el-input-number v-model="time.minutes"
+                             placeholder="Минуты"
+                             :step="1"
+                             step-strictly
+                             :min="0"
+                             :max="59"
+                             label="Минуты"
+                             :controls-position="isPhone ? '' : 'right'"
+            />
+
+            <el-button v-if="input.times.length > 1"
+                       type="danger"
+                       icon="el-icon-delete"
+                       plain
+                       class="calculate__time-buttons_mini"
+                       @click="removeTime(timeKey)"
+            />
+        </div>
+
+        <el-button-group class="calculate__time-buttons">
+            <el-button type="primary"
+                       icon="el-icon-plus"
+                       class="calculate__time-buttons_item"
+                       @click="input.times.push({ hours: '', minutes: '' })"
             >
-                <el-col :sm="12"
-                        :xs="24"
-                >
-                    <h2>Подсчет заработанных денег</h2>
-                </el-col>
-            </el-row>
+                {{ isPhone ? '' : 'Добавить время' }}
+            </el-button>
 
-            <el-row type="flex"
-                    :gutter="18"
-                    align="center"
-                    justify="center"
+            <el-button class="calculate__time-buttons_item"
+                       icon="el-icon-minus"
+                       :disabled="input.times.length === 1"
+                       @click="removeTime(input.times.length - 1)"
             >
-                <el-col :xl="8"
-                        :lg="12"
-                        :md="14"
-                        :sm="18"
-                        :xs="24"
+                {{ isPhone ? '' : 'Удалить время' }}
+            </el-button>
+        </el-button-group>
+
+        <div class="calculate__row">
+            <el-input v-model="input.rate"
+                      placeholder="Ставка"
+                      label="Часы"
+            />
+
+            <el-input v-model="input.advance"
+                      placeholder="Аванс"
+                      :disabled="false"
+            />
+        </div>
+
+        <div class="calculate__row">
+            <el-input v-model="input.desired"
+                      placeholder="Желаемая сумма"
+                      :disabled="false"
+            />
+            <el-input v-model="input.paidOut"
+                      placeholder="Выплачено"
+            />
+        </div>
+
+        <transition type="fade">
+            <div v-if="isTableShow"
+                 class="calculate__table"
+            >
+                <el-table :data="table"
+                          empty-text="—"
+                          :span-method="tableColSpan"
+                          border
+                          stripe
                 >
-                    <el-form label-width="200px">
-                        <el-form-item v-for="(time, timeKey) in input.times"
-                                      :key="timeKey"
-                                      required
-                        >
-                            <span v-if="timeKey === 0"
-                                  slot="label"
-                            >Затраченное время</span>
-
-                            <el-col :span="input.times.length > 1 ? 10 : 12">
-                                <el-input-number v-model="time.hours"
-                                                 placeholder="Часы"
-                                                 step-strictly
-                                                 :min="0"
-                                                 :step="1"
-                                />
-                            </el-col>
-
-                            <el-col :span="input.times.length > 1 ? 10 : 12">
-                                <el-input-number v-model="time.minutes"
-                                                 placeholder="Минуты"
-                                                 :step="1"
-                                                 step-strictly
-                                                 :min="0"
-                                                 :max="59"
-                                />
-                            </el-col>
-
-                            <el-col v-if="input.times.length > 1"
-                                    :span="4"
-                            >
-                                <el-button type="danger"
-                                           icon="el-icon-delete"
-                                           plain
-                                           class="calculate__time-buttons_mini"
-                                           @click="removeTime(timeKey)"
-                                />
-                            </el-col>
-                        </el-form-item>
-
-                        <el-form-item>
-                            <el-button-group class="calculate__time-buttons">
-                                <el-button type="primary"
-                                           icon="el-icon-plus"
-                                           class="calculate__time-buttons_item"
-                                           @click="input.times.push({ hours: '', minutes: '' })"
-                                >
-                                    Добавить время
-                                </el-button>
-
-                                <el-button icon="el-icon-minus"
-                                           class="calculate__time-buttons_item"
-                                           :disabled="input.times.length === 1"
-                                           @click="removeTime(input.times.length - 1)"
-                                >
-                                    Удалить время
-                                </el-button>
-                            </el-button-group>
-                        </el-form-item>
-
-                        <el-form-item label="Зарплата"
-                                      required
-                        >
-                            <el-col :span="12">
-                                <el-input v-model="input.rate"
-                                          placeholder="Ставка"
-                                />
-                            </el-col>
-
-                            <el-col :span="12">
-                                <el-input v-model="input.advance"
-                                          placeholder="Аванс"
-                                          :disabled="false"
-                                />
-                            </el-col>
-                        </el-form-item>
-
-                        <el-form-item label="Дополнительно">
-                            <el-col :span="12">
-                                <el-input v-model="input.desired"
-                                          placeholder="Желаемая сумма"
-                                          :disabled="false"
-                                />
-                            </el-col>
-
-                            <el-col :span="12">
-                                <el-input v-model="input.paidOut"
-                                          placeholder="Выплачено"
-                                />
-                            </el-col>
-                        </el-form-item>
-                    </el-form>
-                </el-col>
-            </el-row>
-
-            <transition type="fade">
-                <el-row v-if="isTableShow"
-                        type="flex"
-                        :gutter="18"
-                        align="center"
-                        justify="center"
-                >
-                    <el-col :xl="8"
-                            :lg="12"
-                            :md="14"
-                            :sm="18"
-                            :xs="24"
-                    >
-                        <el-table :data="table"
-                                  empty-text="—"
-                                  max-height="250"
-                                  :span-method="tableColSpan"
-                                  border
-                                  stripe
-                        >
-                            <el-table-column prop="name"
-                                             label="Тип"
-                                             fixed
-                            />
-                            <el-table-column prop="money"
-                                             label="Заработано"
-                                             align="right"
-                                             :width="115"
-                                             class-name="el-table__cell-custom"
-                            />
-                            <el-table-column v-if="formatDesired"
-                                             prop="moneyLeft"
-                                             label="Осталось (рубли)"
-                                             align="right"
-                                             :width="145"
-                                             class-name="el-table__cell-custom"
-                            />
-                            <el-table-column v-if="formatDesired"
-                                             prop="timeLeft"
-                                             label="Осталось (время)"
-                                             align="right"
-                                             :width="145"
-                                             class-name="el-table__cell-custom"
-                            />
-                        </el-table>
-                    </el-col>
-                </el-row>
-            </transition>
-        </el-col>
-    </el-container>
+                    <el-table-column prop="name"
+                                     label="Тип"
+                                     fixed
+                                     :min-width="165"
+                    />
+                    <el-table-column prop="money"
+                                     label="Заработано"
+                                     align="right"
+                                     :width="115"
+                                     class-name="el-table__cell-custom"
+                    />
+                    <el-table-column v-if="formatDesired"
+                                     prop="moneyLeft"
+                                     label="Осталось (рубли)"
+                                     align="right"
+                                     :width="145"
+                                     class-name="el-table__cell-custom"
+                    />
+                    <el-table-column v-if="formatDesired"
+                                     prop="timeLeft"
+                                     label="Осталось (время)"
+                                     align="right"
+                                     :width="145"
+                                     class-name="el-table__cell-custom"
+                    />
+                </el-table>
+            </div>
+        </transition>
+    </form>
 </template>
 
 <script>
@@ -190,6 +139,10 @@
             }
         },
         computed: {
+            isPhone() {
+                return window.innerWidth < 568
+            },
+
             timeSum() /* number */ {
                 const { times } = this.input;
 
@@ -315,7 +268,6 @@
 
                 formatString = formatString.replace(/\s/g, '');
 
-                console.log(str, formatString)
                 if (formatString.match(regExp)) {
                     return this.mathRound(formatString)
                 }
@@ -452,33 +404,55 @@
 
 <style lang="scss" scoped>
     .calculate {
+        width: 100%;
+        max-width: 568px;
+        padding: 0 16px;
+
+        h2 {
+            margin-top: 0;
+        }
+
+        &__row {
+            display: flex;
+            flex-direction: column;
+            margin: 8px 0;
+
+            @media screen and (min-width: 568px) {
+                flex-direction: row;
+                margin: 16px -8px;
+            }
+
+            * {
+                flex-basis: 100%;
+                width: auto;
+
+                &:nth-child(n + 2) {
+                    margin-top: 8px;
+                }
+
+                @media screen and (min-width: 568px) {
+                    margin: 0 8px;
+
+                    &:nth-child(n + 2) {
+                        margin-top: 0;
+                    }
+                }
+            }
+        }
+
         &__time-buttons {
             width: 100%;
-            padding: 0 6px;
 
             &_mini {
-                width: 100%;
+                flex-shrink: 0;
+
+                @media screen and (min-width: 568px) {
+                    flex-basis: 56px;
+                }
             }
 
             &_item {
                 width: 50%;
-            }
-        }
-
-        .el-input-number {
-            width: 100%;
-        }
-
-        .el-checkbox {
-            width: 50%;
-            padding: 0 8px;
-            margin-right: 0;
-            text-align: left;
-
-            &-group {
-                display: flex;
-                align-items: flex-start;
-                flex-wrap: wrap;
             }
         }
     }
@@ -502,6 +476,7 @@
     .calculate {
         .el-table {
             border-radius: 4px;
+            width: 100%;
 
             .cell {
                 word-break: initial;
@@ -510,6 +485,16 @@
             &__cell-custom {
                 .cell {
                     font-weight: 700;
+                }
+            }
+
+            &__body {
+                &-wrapper {
+                    &.is-scrolling {
+                        &-middle {
+                            .el-table__fixed {}
+                        }
+                    }
                 }
             }
         }
