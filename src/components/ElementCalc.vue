@@ -3,7 +3,7 @@
         <h2>Подсчет заработанных денег</h2>
 
         <div class="calculate__label">
-            Затраченное время
+            {{ timeSum ? `Затраченное время (${createTimeStr(timeSum)})` : `Затраченное время` }}
         </div>
 
         <div v-for="(time, timeKey) in input.times"
@@ -47,9 +47,10 @@
                 {{ isPhone ? '' : 'Добавить время' }}
             </el-button>
 
-            <el-button class="calculate__time-buttons_item"
+            <el-button type="danger"
+                       plain
+                       class="calculate__time-buttons_item"
                        icon="el-icon-minus"
-                       :disabled="input.times.length === 1"
                        @click="removeTime(input.times.length - 1)"
             >
                 {{ isPhone ? '' : 'Удалить время' }}
@@ -258,8 +259,15 @@
             this.getLocalStorage();
         },
         methods: {
-            removeTime(index = this.input.times.length - 1) {
-                this.$set(this.input, 'times', this.input.times.filter((item, idx) => index !== idx))
+            removeTime(index) {
+                if (this.input.times.length === 1) {
+                    this.$set(this.input, 'times', [{
+                        hours: 0,
+                        minutes: 0
+                    }])
+                } else {
+                    this.$set(this.input, 'times', this.input.times.filter((item, idx) => index !== idx))
+                }
             },
 
             formatStringToMoney(str) {
