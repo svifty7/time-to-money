@@ -1,4 +1,4 @@
 module.exports = {
-    outputDir: 'public_html',
+    outputDir: 'dist',
     productionSourceMap: false
 }
