@@ -1,7 +1,5 @@
 .DS_Store
 node_modules
-/dist
-/public_html
 
 # local env files
 .env.local
