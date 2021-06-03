@@ -403,7 +403,8 @@
                     const json = JSON.parse(storage)
                     const { input } = this
                     const keys = Object.keys(input)
-                    const oldStorage = Object.keys(json).filter(key => !keys.includes(key)).length
+                    const oldStorage = Object.keys(json)
+                        .filter(key => !keys.includes(key)).length
 
                     if (!oldStorage) {
                         this.$set(this, 'input', json)
@@ -441,7 +442,7 @@
     $black: #2c3e50;
     $green: #42b983;
     $white: #ffffff;
-    $red: #DE0F07;
+    $red: #de0f07;
 
     .calculate {
         width: 100%;

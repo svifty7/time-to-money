@@ -272,7 +272,7 @@
 
             formatStringToMoney(str) {
                 const { regExp } = this;
-                let formatString = str.replace(/,/g, ".");
+                let formatString = str.replace(/,/g, '.');
 
                 formatString = formatString.replace(/\s/g, '');
 
@@ -354,7 +354,8 @@
 
             // eslint-disable-next-line consistent-return
             tableColSpan({
-                row, columnIndex
+                row,
+                columnIndex
             }) {
                 const {
                     success
@@ -376,7 +377,8 @@
                     const json = JSON.parse(storage);
                     const { input } = this;
                     const keys = Object.keys(input);
-                    const oldStorage = Object.keys(json).filter(key => !keys.includes(key)).length;
+                    const oldStorage = Object.keys(json)
+                        .filter(key => !keys.includes(key)).length;
 
                     if (!oldStorage) {
                         this.$set(this, 'input', json)
@@ -500,7 +502,8 @@
                 &-wrapper {
                     &.is-scrolling {
                         &-middle {
-                            .el-table__fixed {}
+                            .el-table__fixed {
+                            }
                         }
                     }
                 }

@@ -29,11 +29,21 @@
         "eslint-plugin-standard": "^4.0.0",
         "eslint-plugin-vue": "^6.2.2",
         "gh-pages": "^3.2.0",
+        "lint-staged": "^11.0.0",
         "node-sass": "^4.12.0",
         "sass-loader": "^8.0.2",
         "vue-cli-plugin-axios": "0.0.4",
         "vue-cli-plugin-element-ui": "~1.1.4",
         "vue-template-compiler": "^2.6.11"
+    },
+    "gitHooks": {
+        "pre-commit": "lint-staged"
+    },
+    "lint-staged": {
+        "*.{js,jsx,vue}": [
+            "yarn lint",
+            "yarn run deploy"
+        ]
     },
     "browserslist": [
         "> 1%",
