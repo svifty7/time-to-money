@@ -183,16 +183,20 @@
 
             result() /* Array */ {
                 return [{
+                    id: 'main',
                     name: 'Всего за месяц',
                     money: this.earned,
                     main: true
                 }, {
+                    id: 'advance',
                     name: 'После вычета аванса',
                     money: this.earnedAdvance,
                 }, {
+                    id: 'paidOut',
                     name: 'После вычета выплаченного',
                     money: this.earnedPaidOut,
                 }, {
+                    id: 'summaryPaidOut',
                     name: 'После всех выплат',
                     money: this.earnedAdvanceAndPaidOut,
                 }]
@@ -208,12 +212,16 @@
                     ...this.desiredLeft(obj.money),
                     name: obj.name,
                     money: obj.money,
+                    id: obj.id
                 });
                 const formattedResult /* object */ = [formattedObj(main)]
 
-                result.forEach(obj /* object */ => {
-                    if (!obj.main && obj.money && obj.money !== main.money) {
-                        formattedResult.push(formattedObj(obj))
+                result.filter(row => !row.main).forEach(obj /* object */ => {
+                    if (
+                        (this.formatPaidOut && (obj.id === 'paidOut' || obj.id === 'summaryPaidOut'))
+                        || this.formatAdvance && obj.id === 'advance'
+                    ) {
+                        formattedResult.push(formattedObj(obj));
                     }
                 });
 
