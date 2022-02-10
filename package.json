@@ -30,7 +30,7 @@
         "eslint-plugin-vue": "^6.2.2",
         "gh-pages": "^3.2.0",
         "lint-staged": "^11.0.0",
-        "node-sass": "^4.12.0",
+        "node-sass": "^7.0.0",
         "sass-loader": "^8.0.2",
         "vue-cli-plugin-axios": "0.0.4",
         "vue-cli-plugin-element-ui": "~1.1.4",
